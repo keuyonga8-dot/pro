@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TagVault</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -437,6 +439,13 @@ body.viewer-mode.show-pair .pair-section { display:block; }
 </head>
 <body>
 
+<!-- FIREBASE ERROR BANNER -->
+<div id="fbBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#fff0f0;border-bottom:2px solid #f8cce4;padding:12px 20px;align-items:center;gap:12px;font-size:13px;color:#c05888;">
+  ⚠️ Firebase 연결 실패 — <strong>FIREBASE_CONFIG</strong> 값을 확인하세요.
+  <a href="https://console.firebase.google.com" target="_blank" style="color:#5a96c4;font-weight:700">Firebase 콘솔 열기 →</a>
+  <button onclick="document.getElementById('fbBanner').style.display='none'" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:16px;color:#c05888">×</button>
+</div>
+
 <!-- VIEWER PASSWORD SCREEN -->
 <div class="pw-screen" id="pwScreen" style="display:none">
   <div class="pw-box">
@@ -458,7 +467,7 @@ body.viewer-mode.show-pair .pair-section { display:block; }
     <button class="header-tab" data-tab="style" onclick="switchTab('style')">베이스프롬</button>
   </div>
   <div class="header-right">
-    <span class="ver-badge">v15</span>
+    <span class="ver-badge">v17</span>
     <button class="btn-new-cat" id="viewerSettingsBtn" onclick="openViewerSettings()" title="뷰어 공유 설정" style="border-color:rgba(196,224,255,.6);color:var(--c-sky)">🔗 공유 설정</button>
     <button class="btn-new-cat" onclick="openAddCat()">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
@@ -635,42 +644,92 @@ body.viewer-mode.show-pair .pair-section { display:block; }
 </div>
 
 <script>
-const DB_KEY = 'tagvault_db_v5';
+// ════════════════════════════════════
+// 🔥 FIREBASE 설정 — 아래 값을 본인 것으로 교체하세요
+// ════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyA5vlK5hwpfq0SCyn7HBezj0DpqmAtC65Y",
+  authDomain: "character-prompt.firebaseapp.com",
+  databaseURL: "https://character-prompt-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "character-prompt",
+  storageBucket: "character-prompt.firebasestorage.app",
+  messagingSenderId: "1078856893225",
+  appId: "1:1078856893225:web:5c389bdd7ff151d7fead38"
+};
+// ════════════════════════════════════
+
+// Firebase 초기화
+let firebaseApp, firebaseDB, dbRef;
+let _cache = {artist:[], style:[], pair:[]};  // 메모리 캐시
+let _fbReady = false;
+
+function initFirebase() {
+  try {
+    firebaseApp = firebase.initializeApp(FIREBASE_CONFIG);
+    firebaseDB  = firebase.database();
+    dbRef       = firebaseDB.ref('tagvault');
+
+    // 실시간 리스닝 — 데이터 변경 시 자동 갱신
+    dbRef.on('value', snap => {
+      const val = snap.val();
+      if (val) {
+        _cache = { artist: val.artist||[], style: val.style||[], pair: val.pair||[] };
+      } else {
+        _cache = {artist:[], style:[], pair:[]};
+      }
+      _fbReady = true;
+      renderSidebar();
+      renderOverview();
+      if (selectedId) renderDetail(selectedId);
+    });
+  } catch(e) {
+    console.error('Firebase 초기화 실패:', e);
+    showFbError();
+  }
+}
+
+function showFbError() {
+  document.getElementById('fbBanner').style.display = 'flex';
+}
+
+function getDB() {
+  if (IS_VIEWER) {
+    // 뷰어: Firebase 실시간 데이터 (읽기만)
+    return _cache;
+  }
+  return _cache;
+}
+
+function saveDB(db) {
+  if (IS_VIEWER) return; // 뷰어는 저장 불가
+  _cache = db;
+  if (!firebaseDB) { showFbError(); return; }
+  // Firebase에 저장 (배열→객체 변환 없이 그대로)
+  dbRef.set({
+    artist: db.artist || [],
+    style:  db.style  || [],
+    pair:   db.pair   || []
+  }).catch(e => {
+    console.error('저장 실패:', e);
+    alert('⚠️ 저장 실패: ' + e.message);
+  });
+}
+
+// 로컬 캐시용 (기존 코드 호환)
+function loadDB() { return _cache; }
+
+const DB_KEY = 'tagvault_db_v5'; // 레거시 호환용
 let currentTab = 'artist';
 let selectedId = null;
 let editCatId = null;
 let entryTarget = null;
 let sepMode = 'comma';
-let pendingProfileB64 = null; // base64 string or null
+let pendingProfileB64 = null;
 let selectedEntries = new Map();
 const PILL_COLORS = ['#5a96c4','#c05888','#52a880','#8458b8','#c07838','#42a0ae'];
 let colorIdx = 0;
 
-function loadDB() {
-  try { const r = localStorage.getItem(DB_KEY); return r ? JSON.parse(r) : {artist:[],style:[]}; }
-  catch { return {artist:[],style:[]}; }
-}
-function saveDB(db) {
-  try {
-    localStorage.setItem(DB_KEY, JSON.stringify(db));
-  } catch(e) {
-    alert('⚠️ 저장 실패: 용량이 부족해요.\n이미지 크기를 줄이거나 갤러리 이미지를 정리해보세요.');
-  }
-}
-function getDB() {
-  // 뷰어 모드이고 URL 데이터가 있으면 sessionStorage에서 읽기
-  if (IS_VIEWER && params.get('d')) {
-    try {
-      const raw = sessionStorage.getItem('tagvault_view_data');
-      if (raw) return JSON.parse(raw);
-    } catch(e) {}
-  }
-  return loadDB();
-}
-
-function initDemo() {
-  // 기본 데이터 없음
-}
+function initDemo() { /* Firebase로 대체 */ }
 
 /* ── PROFILE FILE ── */
 function resizeImage(dataUrl, maxSize, quality, cb) {
@@ -1218,18 +1277,6 @@ function checkPw() {
 function applyViewerMode() {
   document.body.classList.add('viewer-mode');
 
-  // URL의 d= 파라미터로 데이터 로드 (공유 링크)
-  const dataParam = params.get('d');
-  if (dataParam) {
-    try {
-      const decoded = JSON.parse(decodeURIComponent(escape(atob(dataParam))));
-      // viewer 전용 임시 DB로 저장
-      sessionStorage.setItem('tagvault_view_data', JSON.stringify(decoded));
-    } catch(e) {
-      console.warn('데이터 디코딩 실패', e);
-    }
-  }
-
   // Pair 표시 여부
   if (PAIR_KEY) {
     document.body.classList.add('show-pair');
@@ -1272,33 +1319,9 @@ function openViewerSettings() {
   const pwParam = storedHash !== 'NO_PW' ? ('&pw=' + storedHash) : '';
   const pairKey = localStorage.getItem('tagvault_pair_key') || 'secret';
 
-  // 데이터를 URL에 인코딩 (이미지 제외, 텍스트만)
-  const db = getDB();
-  const exportData = {
-    artist: (db.artist||[]).map(c => ({
-      id: c.id, name: c.name, tag: c.tag||'', emoji: c.emoji||'🏷️',
-      avatar: c.avatar||'',  // 프로필 이미지는 포함 (작게 압축돼있으니 OK)
-      entries: (c.entries||[]).map(e => ({ id:e.id, title:e.title||'', tags:e.tags||[] })),
-      pair: db.pair||[]
-    })),
-    style: (db.style||[]).map(c => ({
-      id: c.id, name: c.name, tag: c.tag||'', emoji: c.emoji||'🏷️',
-      avatar: c.avatar||'',
-      entries: (c.entries||[]).map(e => ({ id:e.id, title:e.title||'', tags:e.tags||[] }))
-    })),
-    pair: db.pair||[]
-  };
-
-  let encoded;
-  try {
-    encoded = btoa(unescape(encodeURIComponent(JSON.stringify(exportData))));
-  } catch(e) {
-    alert('데이터 인코딩 실패: ' + e.message); return;
-  }
-
   const base = location.href.split('?')[0];
-  const viewUrl  = base + '?view=1' + pwParam + '&d=' + encoded;
-  const viewPairUrl = base + '?view=1' + pwParam + '&pair=' + pairKey + '&d=' + encoded;
+  const viewUrl     = base + '?view=1' + pwParam;
+  const viewPairUrl = base + '?view=1' + pwParam + '&pair=' + pairKey;
 
   const pwNote = (newPw.trim() === '') ? '🔓 비밀번호 없음' : '🔒 비밀번호 설정됨';
 
@@ -1329,10 +1352,8 @@ function copyShareLink(inputId, btnId) {
   setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('copied'); }, 2000);
 }
 
-initDemo();
-renderSidebar();
-renderOverview();
-initViewerMode();
+initFirebase();   // Firebase 연결 + 실시간 리스닝 시작
+initViewerMode(); // 뷰어 모드 처리
 </script>
 </body>
 </html>
