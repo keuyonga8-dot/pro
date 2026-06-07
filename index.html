@@ -467,7 +467,7 @@ body.viewer-mode.show-pair .pair-section { display:block; }
     <button class="header-tab" data-tab="style" onclick="switchTab('style')">베이스프롬</button>
   </div>
   <div class="header-right">
-    <span class="ver-badge">v17</span>
+    <span class="ver-badge">v18</span>
     <button class="btn-new-cat" id="viewerSettingsBtn" onclick="openViewerSettings()" title="뷰어 공유 설정" style="border-color:rgba(196,224,255,.6);color:var(--c-sky)">🔗 공유 설정</button>
     <button class="btn-new-cat" onclick="openAddCat()">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
@@ -672,11 +672,11 @@ function initFirebase() {
     // 실시간 리스닝 — 데이터 변경 시 자동 갱신
     dbRef.on('value', snap => {
       const val = snap.val();
-      if (val) {
-        _cache = { artist: val.artist||[], style: val.style||[], pair: val.pair||[] };
-      } else {
-        _cache = {artist:[], style:[], pair:[]};
-      }
+      _cache = {
+        artist: (val && val.artist) ? Object.values(val.artist) : [],
+        style:  (val && val.style)  ? Object.values(val.style)  : [],
+        pair:   (val && val.pair)   ? Object.values(val.pair)   : []
+      };
       _fbReady = true;
       renderSidebar();
       renderOverview();
@@ -693,23 +693,22 @@ function showFbError() {
 }
 
 function getDB() {
-  if (IS_VIEWER) {
-    // 뷰어: Firebase 실시간 데이터 (읽기만)
-    return _cache;
-  }
-  return _cache;
+  return {
+    artist: _cache.artist || [],
+    style:  _cache.style  || [],
+    pair:   _cache.pair   || []
+  };
 }
 
 function saveDB(db) {
-  if (IS_VIEWER) return; // 뷰어는 저장 불가
-  _cache = db;
-  if (!firebaseDB) { showFbError(); return; }
-  // Firebase에 저장 (배열→객체 변환 없이 그대로)
-  dbRef.set({
+  if (IS_VIEWER) return;
+  _cache = {
     artist: db.artist || [],
     style:  db.style  || [],
     pair:   db.pair   || []
-  }).catch(e => {
+  };
+  if (!firebaseDB || !dbRef) { showFbError(); return; }
+  dbRef.set(_cache).catch(e => {
     console.error('저장 실패:', e);
     alert('⚠️ 저장 실패: ' + e.message);
   });
