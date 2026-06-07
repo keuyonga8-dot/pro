@@ -394,6 +394,45 @@ body.viewer-mode.show-pair .pair-section { display:block; }
   padding:4px 10px; border-radius:20px; opacity:.7;
   font-family:'DM Mono',monospace;
 }
+
+/* ━━ SHARE POPUP ━━ */
+.share-popup {
+  position:fixed; inset:0; z-index:9998;
+  background:rgba(210,200,230,.45); backdrop-filter:blur(8px);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.share-popup.on { opacity:1; pointer-events:all; }
+.share-box {
+  background:var(--white); border-radius:18px;
+  padding:28px 26px; width:480px; max-width:92vw;
+  box-shadow:0 16px 48px rgba(150,130,190,.2);
+  display:flex; flex-direction:column; gap:16px;
+  border:1px solid var(--border);
+}
+.share-box-title { font-size:15px; font-weight:700; color:var(--text); display:flex; align-items:center; gap:8px; }
+.share-close { margin-left:auto; background:none; border:none; font-size:20px; color:var(--dim); cursor:pointer; line-height:1; }
+.share-close:hover { color:var(--c-pink); }
+.share-row { display:flex; flex-direction:column; gap:6px; }
+.share-label { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.7px; }
+.share-link-wrap { display:flex; gap:8px; align-items:center; }
+.share-link-input {
+  flex:1; padding:9px 12px; border-radius:8px;
+  border:1px solid var(--border); background:var(--bg);
+  font-family:'DM Mono',monospace; font-size:11px; color:var(--muted);
+  outline:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  cursor:text;
+}
+.share-copy-btn {
+  flex-shrink:0; padding:9px 16px; border-radius:8px; border:none;
+  background:linear-gradient(135deg,var(--sky2),var(--pink2));
+  font-family:inherit; font-size:12px; font-weight:700;
+  color:#607098; cursor:pointer; transition:filter .14s;
+  white-space:nowrap;
+}
+.share-copy-btn:hover { filter:brightness(.96); }
+.share-copy-btn.copied { background:linear-gradient(135deg,#a8e6c8,#c8e6a8); color:#407050; }
+.share-note { font-size:11px; color:var(--dim); line-height:1.6; }
 </style>
 </head>
 <body>
@@ -419,7 +458,7 @@ body.viewer-mode.show-pair .pair-section { display:block; }
     <button class="header-tab" data-tab="style" onclick="switchTab('style')">베이스프롬</button>
   </div>
   <div class="header-right">
-    <span class="ver-badge">v14</span>
+    <span class="ver-badge">v15</span>
     <button class="btn-new-cat" id="viewerSettingsBtn" onclick="openViewerSettings()" title="뷰어 공유 설정" style="border-color:rgba(196,224,255,.6);color:var(--c-sky)">🔗 공유 설정</button>
     <button class="btn-new-cat" onclick="openAddCat()">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
@@ -473,6 +512,34 @@ body.viewer-mode.show-pair .pair-section { display:block; }
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <button class="lightbox-close" onclick="closeLightbox()">×</button>
   <img id="lightboxImg" src="" alt="">
+</div>
+
+<!-- SHARE POPUP -->
+<div class="share-popup" id="sharePopup">
+  <div class="share-box" onmousedown="event.stopPropagation()">
+    <div class="share-box-title">
+      🔗 공유 링크
+      <button class="share-close" onclick="closeSharePopup()">×</button>
+    </div>
+    <div class="share-row">
+      <div class="share-label">📋 뷰어 링크 (Pair 숨김)</div>
+      <div class="share-link-wrap">
+        <input class="share-link-input" id="shareLinkMain" readonly>
+        <button class="share-copy-btn" id="shareCopyMain" onclick="copyShareLink('shareLinkMain','shareCopyMain')">복사</button>
+      </div>
+    </div>
+    <div class="share-row">
+      <div class="share-label">💘 뷰어 링크 (Pair 포함)</div>
+      <div class="share-link-wrap">
+        <input class="share-link-input" id="shareLinkPair" readonly>
+        <button class="share-copy-btn" id="shareCopyPair" onclick="copyShareLink('shareLinkPair','shareCopyPair')">복사</button>
+      </div>
+    </div>
+    <div class="share-note">
+      ⚠️ 링크가 길기 때문에 카카오톡보다는 <strong>메모장에 붙여넣기 후 전송</strong>하거나<br>
+      <strong>bitly.com</strong> 같은 단축 URL 서비스 사용을 추천해요.
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1113,6 +1180,7 @@ function savePair() {
 function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 document.querySelectorAll('.overlay').forEach(o => o.addEventListener('mousedown', e=>{ if(e.target===o) o.classList.remove('on'); }));
+document.getElementById('sharePopup').addEventListener('mousedown', e=>{ if(e.target===document.getElementById('sharePopup')) closeSharePopup(); });
 
 
 /* ━━ VIEWER MODE ━━ */
@@ -1234,14 +1302,31 @@ function openViewerSettings() {
 
   const pwNote = (newPw.trim() === '') ? '🔓 비밀번호 없음' : '🔒 비밀번호 설정됨';
 
-  // 클립보드에 복사
-  copyText(viewUrl, '');
-  alert(
-    '✅ 설정 완료! ' + pwNote + '\n\n' +
-    '📋 뷰어 링크가 클립보드에 복사됐어요!\n(Pair 숨김 버전)\n\n' +
-    '💘 Pair 포함 링크:\n' + viewPairUrl.slice(0, 80) + '...\n\n' +
-    '⚠️ 링크가 길어서 카톡보단 메모장에 붙여넣고 공유하는 걸 추천해요.'
-  );
+  // 팝업으로 링크 표시
+  openSharePopup(viewUrl, viewPairUrl);
+}
+
+function openSharePopup(urlMain, urlPair) {
+  document.getElementById('shareLinkMain').value = urlMain;
+  document.getElementById('shareLinkPair').value = urlPair;
+  document.getElementById('shareCopyMain').textContent = '복사';
+  document.getElementById('shareCopyMain').classList.remove('copied');
+  document.getElementById('shareCopyPair').textContent = '복사';
+  document.getElementById('shareCopyPair').classList.remove('copied');
+  document.getElementById('sharePopup').classList.add('on');
+}
+
+function closeSharePopup() {
+  document.getElementById('sharePopup').classList.remove('on');
+}
+
+function copyShareLink(inputId, btnId) {
+  const val = document.getElementById(inputId).value;
+  const btn = document.getElementById(btnId);
+  copyText(val, '');
+  btn.textContent = '✓ 복사됨';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('copied'); }, 2000);
 }
 
 initDemo();
