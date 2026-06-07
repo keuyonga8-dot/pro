@@ -419,7 +419,7 @@ body.viewer-mode.show-pair .pair-section { display:block; }
     <button class="header-tab" data-tab="style" onclick="switchTab('style')">베이스프롬</button>
   </div>
   <div class="header-right">
-    <span class="ver-badge">v13</span>
+    <span class="ver-badge">v14</span>
     <button class="btn-new-cat" id="viewerSettingsBtn" onclick="openViewerSettings()" title="뷰어 공유 설정" style="border-color:rgba(196,224,255,.6);color:var(--c-sky)">🔗 공유 설정</button>
     <button class="btn-new-cat" onclick="openAddCat()">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
@@ -590,7 +590,16 @@ function saveDB(db) {
     alert('⚠️ 저장 실패: 용량이 부족해요.\n이미지 크기를 줄이거나 갤러리 이미지를 정리해보세요.');
   }
 }
-function getDB() { return loadDB(); }
+function getDB() {
+  // 뷰어 모드이고 URL 데이터가 있으면 sessionStorage에서 읽기
+  if (IS_VIEWER && params.get('d')) {
+    try {
+      const raw = sessionStorage.getItem('tagvault_view_data');
+      if (raw) return JSON.parse(raw);
+    } catch(e) {}
+  }
+  return loadDB();
+}
 
 function initDemo() {
   // 기본 데이터 없음
@@ -1140,13 +1149,24 @@ function checkPw() {
 
 function applyViewerMode() {
   document.body.classList.add('viewer-mode');
-  // Pair 표시 여부: pair 파라미터가 localStorage pair_key와 일치해야 함
-  const storedPairKey = localStorage.getItem('tagvault_pair_key') || 'secret';
-  if (PAIR_KEY && PAIR_KEY === storedPairKey) {
+
+  // URL의 d= 파라미터로 데이터 로드 (공유 링크)
+  const dataParam = params.get('d');
+  if (dataParam) {
+    try {
+      const decoded = JSON.parse(decodeURIComponent(escape(atob(dataParam))));
+      // viewer 전용 임시 DB로 저장
+      sessionStorage.setItem('tagvault_view_data', JSON.stringify(decoded));
+    } catch(e) {
+      console.warn('데이터 디코딩 실패', e);
+    }
+  }
+
+  // Pair 표시 여부
+  if (PAIR_KEY) {
     document.body.classList.add('show-pair');
   }
   document.getElementById('viewerBadge').style.display = 'block';
-  // 베이스프롬 탭 강제로 캐릭터명단으로
   switchTab('artist');
 }
 
@@ -1175,25 +1195,52 @@ function openViewerSettings() {
     localStorage.setItem(VIEWER_PW_KEY, simpleHash(newPw.trim()));
   }
 
-  const newPairKey = prompt('Pair 공개 키를 설정하세요\n(이 키를 ?pair=키 로 URL에 붙이면 Pair가 보여요):', localStorage.getItem('tagvault_pair_key')||'secret');
+  const newPairKey = prompt('Pair 공개 키를 설정하세요\n(이 키를 아는 사람만 Pair가 보여요):', localStorage.getItem('tagvault_pair_key')||'secret');
   if (newPairKey !== null && newPairKey.trim()) {
     localStorage.setItem('tagvault_pair_key', newPairKey.trim());
   }
 
-  const base = location.href.split('?')[0];
-  const viewUrl = base + '?view=1';
-  const viewPairUrl = base + '?view=1&pair=' + (newPairKey||localStorage.getItem('tagvault_pair_key')||'secret');
-  const pwNote = (newPw.trim() === '') ? '🔓 비밀번호 없음 (바로 입장)' : '🔒 비밀번호 설정됨';
-  // 비밀번호가 있으면 해시를 URL에 포함해서 다른 브라우저에서도 작동하게
   const storedHash = localStorage.getItem(VIEWER_PW_KEY) || 'NO_PW';
   const pwParam = storedHash !== 'NO_PW' ? ('&pw=' + storedHash) : '';
-  const viewUrlFinal = viewUrl + pwParam;
-  const viewPairUrlFinal = viewPairUrl + pwParam;
+  const pairKey = localStorage.getItem('tagvault_pair_key') || 'secret';
+
+  // 데이터를 URL에 인코딩 (이미지 제외, 텍스트만)
+  const db = getDB();
+  const exportData = {
+    artist: (db.artist||[]).map(c => ({
+      id: c.id, name: c.name, tag: c.tag||'', emoji: c.emoji||'🏷️',
+      avatar: c.avatar||'',  // 프로필 이미지는 포함 (작게 압축돼있으니 OK)
+      entries: (c.entries||[]).map(e => ({ id:e.id, title:e.title||'', tags:e.tags||[] })),
+      pair: db.pair||[]
+    })),
+    style: (db.style||[]).map(c => ({
+      id: c.id, name: c.name, tag: c.tag||'', emoji: c.emoji||'🏷️',
+      avatar: c.avatar||'',
+      entries: (c.entries||[]).map(e => ({ id:e.id, title:e.title||'', tags:e.tags||[] }))
+    })),
+    pair: db.pair||[]
+  };
+
+  let encoded;
+  try {
+    encoded = btoa(unescape(encodeURIComponent(JSON.stringify(exportData))));
+  } catch(e) {
+    alert('데이터 인코딩 실패: ' + e.message); return;
+  }
+
+  const base = location.href.split('?')[0];
+  const viewUrl  = base + '?view=1' + pwParam + '&d=' + encoded;
+  const viewPairUrl = base + '?view=1' + pwParam + '&pair=' + pairKey + '&d=' + encoded;
+
+  const pwNote = (newPw.trim() === '') ? '🔓 비밀번호 없음' : '🔒 비밀번호 설정됨';
+
+  // 클립보드에 복사
+  copyText(viewUrl, '');
   alert(
     '✅ 설정 완료! ' + pwNote + '\n\n' +
-    '📋 뷰어 링크 (Pair 숨김):\n' + viewUrlFinal + '\n\n' +
-    '💘 뷰어 링크 (Pair 포함):\n' + viewPairUrlFinal + '\n\n' +
-    '이 링크를 그대로 공유하세요!'
+    '📋 뷰어 링크가 클립보드에 복사됐어요!\n(Pair 숨김 버전)\n\n' +
+    '💘 Pair 포함 링크:\n' + viewPairUrl.slice(0, 80) + '...\n\n' +
+    '⚠️ 링크가 길어서 카톡보단 메모장에 붙여넣고 공유하는 걸 추천해요.'
   );
 }
 
