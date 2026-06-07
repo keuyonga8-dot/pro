@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TagVault</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --white:#ffffff; --bg:#f4f0f8; --sky:#e0f0ff; --sky2:#c4e0ff;
+  --pink:#fde8f3; --pink2:#f8cce4; --border:#e4ddf0;
+  --text:#48405e; --muted:#9890b4; --dim:#ccc6dc;
+  --c-sky:#5a96c4; --c-pink:#c05888; --c-mint:#52a880;
+  --c-purple:#8458b8; --c-peach:#c07838; --c-teal:#42a0ae;
+  --sidebar-w:240px;
+}
+body {
+  font-family:'Noto Sans KR',sans-serif;
+  background:var(--bg); color:var(--text);
+  height:100vh;
+  display:grid;
+  grid-template-columns:var(--sidebar-w) 1fr;
+  grid-template-rows:54px 1fr;
+  overflow:hidden;
+}
+
+/* ━━ HEADER ━━ */
+header {
+  grid-column:1/-1;
+  display:flex; align-items:center;
+  padding:0 22px; gap:14px;
+  background:var(--white);
+  border-bottom:1px solid var(--border);
+}
+.logo { font-size:15px; font-weight:700; color:var(--text); display:flex; align-items:center; gap:7px; flex-shrink:0; }
+.logo-dot { width:7px; height:7px; border-radius:50%; background:linear-gradient(135deg,var(--sky2),var(--pink2)); }
+.header-divider { width:1px; height:18px; background:var(--border); flex-shrink:0; }
+.header-tabs { display:flex; gap:2px; }
+.header-tab {
+  background:none; border:none; font-family:inherit; font-size:13px; font-weight:500;
+  color:var(--muted); padding:5px 13px; border-radius:7px; cursor:pointer; transition:all 0.14s;
+}
+.header-tab:hover { background:var(--bg); color:var(--text); }
+.header-tab.active { background:linear-gradient(120deg,rgba(196,224,255,.35),rgba(248,204,228,.35)); color:var(--text); font-weight:700; }
+.header-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
+.ver-badge { font-family:'DM Mono',monospace; font-size:10px; color:var(--dim); background:var(--bg); border:1px solid var(--border); border-radius:20px; padding:2px 8px; }
+.btn-new-cat {
+  display:flex; align-items:center; gap:5px; padding:6px 14px; border-radius:8px;
+  border:1.5px solid var(--border); background:var(--white);
+  font-family:inherit; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; transition:all 0.14s;
+}
+.btn-new-cat:hover { border-color:var(--sky2); color:var(--c-sky); }
+
+/* ━━ SIDEBAR ━━ */
+.sidebar { background:var(--white); border-right:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; }
+.sidebar-top { padding:12px 12px 8px; flex-shrink:0; }
+.sidebar-label { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--dim); padding:0 4px; margin-bottom:6px; }
+.search-box { display:flex; align-items:center; gap:6px; background:var(--bg); border-radius:7px; padding:6px 9px; border:1px solid transparent; transition:border-color 0.14s; }
+.search-box:focus-within { border-color:var(--sky2); }
+.search-box svg { color:var(--dim); flex-shrink:0; }
+.search-box input { background:none; border:none; outline:none; font-family:inherit; font-size:12px; color:var(--text); width:100%; }
+.search-box input::placeholder { color:var(--dim); }
+.cat-list { flex:1; overflow-y:auto; padding:4px 8px 10px; }
+.cat-list::-webkit-scrollbar { width:3px; }
+.cat-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+.cat-item {
+  display:flex; align-items:center; gap:9px; padding:6px 8px; border-radius:8px;
+  cursor:pointer; border:none; background:none; font-family:inherit; text-align:left; width:100%;
+  transition:background 0.12s; position:relative;
+}
+.cat-item:hover { background:var(--bg); }
+.cat-item.active { background:linear-gradient(100deg,rgba(196,224,255,.3),rgba(248,204,228,.25)); }
+.cat-item.active::before { content:''; position:absolute; left:0; top:22%; bottom:22%; width:2.5px; border-radius:3px; background:linear-gradient(180deg,var(--sky2),var(--pink2)); }
+
+/* profile image in sidebar */
+.cat-avatar {
+  width:40px; height:40px; border-radius:50%; flex-shrink:0;
+  background:linear-gradient(135deg,var(--sky),var(--pink));
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; overflow:hidden; border:1.5px solid var(--border);
+}
+.cat-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+
+.cat-info { flex:1; min-width:0; }
+.cat-name { font-size:12.5px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cat-item.active .cat-name { color:var(--c-sky); }
+.cat-sub { font-size:10px; color:var(--dim); font-family:'DM Mono',monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; }
+.cat-count { font-size:10px; font-weight:700; color:var(--dim); font-family:'DM Mono',monospace; background:var(--bg); border:1px solid var(--border); border-radius:20px; padding:1px 6px; flex-shrink:0; }
+.cat-item.active .cat-count { color:var(--c-sky); border-color:rgba(196,224,255,.6); background:rgba(196,224,255,.15); }
+.sidebar-foot { padding:8px 12px; border-top:1px solid var(--border); font-size:10px; color:var(--dim); font-family:'DM Mono',monospace; flex-shrink:0; }
+
+/* ━━ MAIN ━━ */
+.main { overflow-y:auto; background:var(--bg); }
+.main::-webkit-scrollbar { width:5px; }
+.main::-webkit-scrollbar-thumb { background:var(--border); border-radius:5px; }
+.overview { padding:20px; }
+.overview-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:14px;
+}
+.ov-card {
+  background:var(--white);
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:box-shadow .18s, transform .18s, border-color .15s;
+}
+.ov-card:hover { box-shadow:0 6px 24px rgba(160,180,220,.18); transform:translateY(-2px); border-color:var(--sky2); }
+.ov-card-thumb {
+  width:100%; aspect-ratio:1;
+  background:linear-gradient(135deg,var(--sky),var(--pink));
+  display:flex; align-items:center; justify-content:center;
+  font-size:42px;
+  overflow:hidden; position:relative;
+}
+.ov-card-thumb img {
+  width:100%; height:100%; object-fit:cover;
+  position:absolute; inset:0;
+}
+.ov-card-thumb .ov-gallery-strip {
+  position:absolute; inset:0;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr;
+  gap:1px;
+}
+.ov-card-thumb .ov-gallery-strip img {
+  width:100%; height:100%; object-fit:cover; position:static;
+}
+.ov-card-info {
+  padding:10px 12px;
+  border-top:1px solid var(--border);
+}
+.ov-card-name { font-size:13px; font-weight:700; color:var(--text); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ov-card-sub { font-size:10px; color:var(--dim); font-family:'DM Mono',monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ov-card-count { font-size:10px; color:var(--muted); margin-top:4px; }
+.ov-empty-hint { grid-column:1/-1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; gap:10px; color:var(--dim); }
+.ov-empty-hint .ring { width:60px; height:60px; border-radius:50%; border:2px dashed var(--dim); display:flex; align-items:center; justify-content:center; font-size:24px; margin-bottom:4px; }
+.ov-empty-hint p { font-size:13px; color:var(--muted); }
+.detail { padding:22px 26px 40px; }
+
+/* ━━ HERO ━━ */
+.hero { background:var(--white); border:1px solid var(--border); border-radius:14px; padding:16px 20px; display:flex; align-items:center; gap:14px; margin-bottom:20px; position:relative; overflow:hidden; }
+.hero::after { content:''; position:absolute; inset:0; background:linear-gradient(130deg,transparent 55%,rgba(196,224,255,.18) 75%,rgba(248,204,228,.15) 100%); pointer-events:none; }
+.hero-avatar {
+  width:72px; height:72px; border-radius:50%; flex-shrink:0;
+  background:linear-gradient(135deg,var(--sky),var(--pink));
+  display:flex; align-items:center; justify-content:center;
+  font-size:30px; overflow:hidden;
+  border:2.5px solid var(--border);
+  box-shadow:0 4px 14px rgba(180,200,240,.3);
+}
+.hero-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+.hero-body { flex:1; min-width:0; }
+.hero-name { font-size:17px; font-weight:700; letter-spacing:-.3px; margin-bottom:2px; }
+.hero-tag { font-family:'DM Mono',monospace; font-size:11px; color:var(--c-sky); margin-bottom:7px; }
+.hero-badges { display:flex; gap:5px; flex-wrap:wrap; }
+.badge { font-size:10px; font-weight:600; padding:2px 8px; border-radius:20px; background:var(--bg); color:var(--muted); border:1px solid var(--border); }
+.hero-btns { display:flex; gap:5px; flex-shrink:0; }
+.icon-btn { width:30px; height:30px; border-radius:7px; border:1px solid var(--border); background:var(--white); font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.14s; }
+.icon-btn:hover { background:var(--sky); border-color:var(--sky2); }
+
+/* ━━ ENTRIES ━━ */
+.entries { display:flex; flex-direction:column; gap:12px; }
+
+.entry { background:var(--white); border:1px solid var(--border); border-radius:12px; overflow:hidden; transition:box-shadow .18s,transform .18s,border-color .15s; position:relative; }
+.entry:hover { box-shadow:0 5px 20px rgba(160,180,220,.14); transform:translateY(-1px); }
+.entry.selected { border-color:var(--sky2); box-shadow:0 0 0 2px rgba(196,224,255,.4); }
+
+.entry-check-wrap { position:absolute; top:10px; right:10px; z-index:2; }
+.entry-check { width:20px; height:20px; border-radius:6px; border:1.5px solid var(--dim); background:var(--white); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .14s; font-size:11px; color:transparent; user-select:none; }
+.entry-check:hover { border-color:var(--sky2); }
+.entry.selected .entry-check { background:linear-gradient(135deg,var(--sky2),var(--pink2)); border-color:transparent; color:#607098; }
+
+/* compact entry body */
+.entry-body { padding:10px 14px 12px; }
+.entry-row { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:7px; }
+.entry-title-text { font-size:11px; font-weight:700; color:var(--muted); }
+.entry-btns { display:flex; gap:4px; }
+.btn-copy-all { display:flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; border:1px solid var(--border); background:var(--bg); font-family:inherit; font-size:10px; font-weight:700; color:var(--muted); cursor:pointer; transition:all .14s; }
+.btn-copy-all:hover { border-color:var(--sky2); color:var(--c-sky); }
+.btn-del-entry { padding:3px 7px; border-radius:20px; border:1px solid transparent; background:none; font-size:11px; color:var(--dim); cursor:pointer; transition:all .14s; }
+.btn-del-entry:hover { color:var(--c-pink); background:rgba(248,204,228,.25); }
+
+/* compact tags */
+.tags { display:flex; flex-wrap:wrap; gap:4px; }
+.chip { padding:3px 9px; border-radius:20px; font-size:10.5px; font-family:'DM Mono',monospace; cursor:pointer; border:1px solid; transition:all .12s; user-select:none; }
+.chip:hover { transform:translateY(-1px); box-shadow:0 2px 6px rgba(0,0,0,.06); }
+.chip.k0 { background:rgba(90,150,196,.1); color:var(--c-sky); border-color:rgba(90,150,196,.22); }
+.chip.k1 { background:rgba(192,88,136,.1); color:var(--c-pink); border-color:rgba(192,88,136,.22); }
+.chip.k2 { background:rgba(82,168,128,.1); color:var(--c-mint); border-color:rgba(82,168,128,.22); }
+.chip.k3 { background:rgba(132,88,184,.1); color:var(--c-purple); border-color:rgba(132,88,184,.22); }
+.chip.k4 { background:rgba(192,120,56,.1); color:var(--c-peach); border-color:rgba(192,120,56,.22); }
+.chip.k5 { background:rgba(66,160,174,.1); color:var(--c-teal); border-color:rgba(66,160,174,.22); }
+
+/* ━━ GALLERY ━━ */
+.gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:8px; margin-top:8px; }
+.gallery-img-wrap {
+  aspect-ratio:1; border-radius:8px; overflow:hidden;
+  background:linear-gradient(135deg,var(--sky),var(--pink));
+  position:relative; cursor:pointer; group:true;
+}
+.gallery-img-wrap img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .2s; }
+.gallery-img-wrap:hover img { transform:scale(1.06); }
+.gallery-img-del {
+  position:absolute; top:4px; right:4px;
+  width:18px; height:18px; border-radius:50%;
+  background:rgba(255,255,255,.85); border:none;
+  font-size:10px; cursor:pointer; color:#c05888;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transition:opacity .15s;
+}
+.gallery-img-wrap:hover .gallery-img-del { opacity:1; }
+.gallery-add {
+  aspect-ratio:1; border-radius:8px;
+  border:1.5px dashed var(--dim);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:4px; cursor:pointer; transition:all .15s; background:none;
+  color:var(--dim); font-size:10px; font-family:inherit;
+}
+.gallery-add:hover { border-color:var(--sky2); color:var(--c-sky); background:rgba(196,224,255,.1); }
+.gallery-add svg { width:18px; height:18px; }
+.gallery-add-input { display:none; }
+
+/* add entry */
+.btn-add-entry { display:flex; align-items:center; justify-content:center; gap:6px; width:100%; padding:11px; border:1.5px dashed var(--dim); border-radius:12px; background:none; font-family:inherit; font-size:12px; font-weight:600; color:var(--dim); cursor:pointer; margin-top:4px; transition:all .15s; }
+.btn-add-entry:hover { border-color:var(--sky2); color:var(--c-sky); background:rgba(196,224,255,.1); }
+
+/* ━━ CAT GALLERY SECTION ━━ */
+.cat-gallery-section { margin-bottom:16px; }
+.cat-gallery-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--dim); margin-bottom:8px; padding-left:2px; }
+
+/* ━━ PAIR SECTION ━━ */
+.pair-section { margin-top:16px; background:var(--white); border:1.5px solid var(--pink2); border-radius:14px; overflow:hidden; box-shadow:0 2px 16px rgba(248,204,228,.2); }
+.pair-section-header { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; background:linear-gradient(90deg,rgba(248,204,228,.25),rgba(196,224,255,.2)); border-bottom:1px solid var(--border); }
+.pair-section-title { font-size:12px; font-weight:700; color:var(--text); }
+.pair-empty { padding:16px; font-size:12px; color:var(--dim); text-align:center; }
+.pair-card { display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid var(--border); transition:background .12s; }
+.pair-card:last-child { border-bottom:none; }
+.pair-card:hover { background:rgba(248,232,243,.3); }
+.pair-avatar { width:38px; height:38px; border-radius:50%; flex-shrink:0; background:linear-gradient(135deg,var(--pink),var(--sky)); display:flex; align-items:center; justify-content:center; font-size:16px; overflow:hidden; border:1.5px solid var(--pink2); }
+.pair-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+.pair-body { flex:1; min-width:0; }
+.pair-name { font-size:12px; font-weight:700; color:var(--text); margin-bottom:5px; }
+.pair-tags { display:flex; flex-wrap:wrap; gap:4px; }
+.pair-actions { display:flex; gap:4px; flex-shrink:0; align-items:center; }
+
+/* ━━ SUMMARY BOX ━━ */
+.summary-box { margin-top:16px; background:var(--white); border:1.5px solid var(--sky2); border-radius:14px; overflow:hidden; box-shadow:0 2px 16px rgba(196,224,255,.25); }
+.summary-header { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; background:linear-gradient(90deg,rgba(196,224,255,.25),rgba(248,204,228,.2)); border-bottom:1px solid var(--border); gap:10px; flex-wrap:wrap; }
+.summary-title { display:flex; align-items:center; gap:7px; font-size:12px; font-weight:700; color:var(--text); }
+.summary-tag-count { font-family:'DM Mono',monospace; font-size:10px; color:var(--c-sky); background:rgba(196,224,255,.3); border:1px solid rgba(196,224,255,.6); border-radius:20px; padding:1px 7px; font-weight:700; }
+.summary-actions { display:flex; align-items:center; gap:5px; }
+.sum-sep-btn { background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:3px 8px; font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); cursor:pointer; transition:all .12s; }
+.sum-sep-btn.active { background:rgba(196,224,255,.3); border-color:var(--sky2); color:var(--c-sky); }
+.btn-sum-copy { display:flex; align-items:center; gap:5px; padding:5px 13px; border-radius:8px; border:none; background:linear-gradient(135deg,var(--sky2),var(--pink2)); font-family:inherit; font-size:11px; font-weight:700; color:#607098; cursor:pointer; transition:filter .14s,transform .14s; box-shadow:0 2px 8px rgba(196,224,255,.35); }
+.btn-sum-copy:hover { filter:brightness(.96); transform:translateY(-1px); }
+.summary-chips { padding:12px 16px; display:flex; flex-wrap:wrap; gap:5px; }
+.sum-chip { padding:3px 10px; border-radius:20px; font-size:10.5px; font-family:'DM Mono',monospace; cursor:pointer; background:rgba(196,224,255,.18); color:var(--c-sky); border:1px solid rgba(196,224,255,.45); transition:all .12s; user-select:none; }
+.sum-chip:hover { background:rgba(196,224,255,.38); transform:translateY(-1px); }
+
+/* ━━ MERGE BAR ━━ */
+.merge-bar { position:fixed; bottom:24px; left:calc(var(--sidebar-w) + 24px); right:24px; background:var(--white); border:1px solid var(--border); border-radius:14px; box-shadow:0 8px 32px rgba(140,120,180,.18); padding:14px 18px; display:flex; align-items:flex-start; gap:14px; z-index:50; transform:translateY(20px); opacity:0; pointer-events:none; transition:all .24s cubic-bezier(.34,1.56,.64,1); }
+.merge-bar.on { opacity:1; transform:translateY(0); pointer-events:all; }
+.merge-bar-left { flex:1; min-width:0; }
+.merge-bar-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.merge-bar-title { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.7px; }
+.merge-count { font-family:'DM Mono',monospace; font-size:10px; font-weight:700; background:linear-gradient(120deg,rgba(196,224,255,.5),rgba(248,204,228,.5)); border:1px solid var(--border); color:var(--c-sky); border-radius:20px; padding:1px 7px; }
+.merge-clear { margin-left:auto; background:none; border:none; font-size:11px; color:var(--dim); cursor:pointer; font-family:inherit; transition:color .14s; }
+.merge-clear:hover { color:var(--c-pink); }
+.merge-pills { display:flex; flex-wrap:wrap; gap:5px; }
+.merge-pill { display:flex; align-items:center; gap:5px; padding:3px 9px 3px 6px; border-radius:20px; font-size:11px; font-weight:600; border:1px solid var(--border); background:var(--bg); color:var(--text); }
+.merge-pill-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+.merge-pill-x { background:none; border:none; cursor:pointer; color:var(--dim); font-size:12px; line-height:1; padding:0 0 0 2px; transition:color .12s; }
+.merge-pill-x:hover { color:var(--c-pink); }
+.merge-bar-right { display:flex; flex-direction:column; gap:6px; flex-shrink:0; align-self:center; }
+.btn-merge-copy { display:flex; align-items:center; gap:6px; padding:9px 18px; border-radius:10px; border:none; background:linear-gradient(135deg,var(--sky2),var(--pink2)); font-family:inherit; font-size:12px; font-weight:700; color:#607098; cursor:pointer; transition:filter .14s,transform .14s; white-space:nowrap; }
+.btn-merge-copy:hover { filter:brightness(.96); transform:translateY(-1px); }
+.merge-sep-type { display:flex; gap:4px; justify-content:center; }
+.sep-btn { background:var(--bg); border:1px solid var(--border); border-radius:5px; padding:2px 7px; font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); cursor:pointer; transition:all .12s; }
+.sep-btn.active { background:rgba(196,224,255,.3); border-color:var(--sky2); color:var(--c-sky); }
+
+/* ━━ LIGHTBOX ━━ */
+.lightbox { position:fixed; inset:0; background:rgba(40,30,60,.7); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; z-index:200; opacity:0; pointer-events:none; transition:opacity .2s; }
+.lightbox.on { opacity:1; pointer-events:all; }
+.lightbox img { max-width:90vw; max-height:90vh; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.4); }
+.lightbox-close { position:absolute; top:20px; right:24px; background:rgba(255,255,255,.15); border:none; color:#fff; font-size:24px; cursor:pointer; border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; transition:background .15s; }
+.lightbox-close:hover { background:rgba(255,255,255,.3); }
+
+/* ━━ TOAST ━━ */
+.toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(10px); background:linear-gradient(120deg,var(--sky2),var(--pink2)); color:#58709a; font-size:12px; font-weight:700; padding:8px 18px; border-radius:30px; opacity:0; pointer-events:none; transition:all .2s; z-index:999; box-shadow:0 4px 14px rgba(160,180,220,.28); }
+.toast.on { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ━━ MODAL ━━ */
+.overlay { position:fixed; inset:0; background:rgba(210,200,230,.35); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; z-index:100; opacity:0; pointer-events:none; transition:opacity .2s; }
+.overlay.on { opacity:1; pointer-events:all; }
+.modal { background:var(--white); border:1px solid var(--border); border-radius:16px; width:480px; max-width:92vw; max-height:88vh; overflow-y:auto; transform:scale(.95) translateY(10px); transition:transform .2s; box-shadow:0 14px 44px rgba(150,130,190,.18); }
+.overlay.on .modal { transform:scale(1) translateY(0); }
+.modal-head { display:flex; align-items:center; justify-content:space-between; padding:17px 20px 15px; border-bottom:1px solid var(--border); background:linear-gradient(90deg,rgba(196,224,255,.25),rgba(248,204,228,.2)); border-radius:16px 16px 0 0; }
+.modal-title { font-size:14px; font-weight:700; color:var(--c-sky); }
+.modal-x { background:none; border:none; color:var(--dim); font-size:18px; cursor:pointer; line-height:1; transition:color .14s; }
+.modal-x:hover { color:var(--c-pink); }
+.modal-body { padding:18px 20px; display:flex; flex-direction:column; gap:13px; }
+.field { display:flex; flex-direction:column; gap:5px; }
+.field label { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.7px; }
+.field input, .field textarea { background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:inherit; font-size:13px; padding:9px 11px; outline:none; width:100%; transition:border-color .14s,background .14s; }
+.field input:focus, .field textarea:focus { border-color:var(--sky2); background:var(--white); }
+.field input::placeholder, .field textarea::placeholder { color:var(--dim); }
+.field textarea { resize:vertical; min-height:90px; font-family:'DM Mono',monospace; font-size:12px; }
+.modal-foot { display:flex; gap:7px; justify-content:flex-end; padding:13px 20px; border-top:1px solid var(--border); }
+.btn-cancel { background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:7px 15px; font-family:inherit; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; transition:all .14s; }
+.btn-cancel:hover { border-color:var(--sky2); color:var(--c-sky); }
+.btn-save { background:linear-gradient(135deg,var(--sky2),var(--pink2)); border:none; border-radius:8px; padding:7px 18px; font-family:inherit; font-size:12px; font-weight:700; color:#607098; cursor:pointer; transition:filter .14s; }
+.btn-save:hover { filter:brightness(.96); }
+
+/* profile upload in modal */
+.profile-upload-area {
+  display:flex; align-items:center; gap:14px;
+}
+.profile-preview {
+  width:60px; height:60px; border-radius:50%; flex-shrink:0;
+  background:linear-gradient(135deg,var(--sky),var(--pink));
+  border:2px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:24px; overflow:hidden; cursor:pointer;
+  transition:border-color .15s;
+}
+.profile-preview:hover { border-color:var(--sky2); }
+.profile-preview img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+.profile-upload-hint { font-size:11px; color:var(--muted); line-height:1.6; }
+.profile-upload-hint strong { color:var(--c-sky); cursor:pointer; }
+.profile-upload-hint strong:hover { text-decoration:underline; }
+
+/* ━━ VIEWER MODE ━━ */
+body.viewer-mode .btn-new-cat,
+body.viewer-mode .btn-add-entry,
+body.viewer-mode .btn-del-entry,
+body.viewer-mode .entry-check-wrap,
+body.viewer-mode .hero-btns,
+body.viewer-mode .merge-bar,
+body.viewer-mode .gallery-add,
+body.viewer-mode .gallery-img-del,
+body.viewer-mode #sepComma,
+body.viewer-mode #sepNewline,
+body.viewer-mode .pair-section .btn-sum-copy[onclick^="openPairModal"],
+body.viewer-mode .sum-sep-btn { display:none !important; }
+
+body.viewer-mode .header-tab[data-tab="style"] { display:none !important; }
+body.viewer-mode .ver-badge { display:none; }
+body.viewer-mode .entry { pointer-events:auto; }
+body.viewer-mode .pair-section { display:none; }
+body.viewer-mode.show-pair .pair-section { display:block; }
+
+/* 비밀번호 화면 */
+.pw-screen {
+  position:fixed; inset:0; z-index:9999;
+  background:linear-gradient(135deg,var(--sky),var(--pink));
+  display:flex; align-items:center; justify-content:center;
+}
+.pw-box {
+  background:var(--white); border-radius:20px;
+  padding:36px 32px; width:320px;
+  box-shadow:0 20px 60px rgba(160,140,200,.25);
+  display:flex; flex-direction:column; align-items:center; gap:16px;
+  text-align:center;
+}
+.pw-logo { font-size:36px; margin-bottom:4px; }
+.pw-title { font-size:16px; font-weight:700; color:var(--text); }
+.pw-sub { font-size:12px; color:var(--muted); }
+.pw-input {
+  width:100%; padding:11px 14px; border-radius:10px;
+  border:1.5px solid var(--border); background:var(--bg);
+  font-family:inherit; font-size:14px; color:var(--text);
+  outline:none; text-align:center; letter-spacing:3px;
+  transition:border-color .15s;
+}
+.pw-input:focus { border-color:var(--sky2); }
+.pw-btn {
+  width:100%; padding:11px; border-radius:10px; border:none;
+  background:linear-gradient(135deg,var(--sky2),var(--pink2));
+  font-family:inherit; font-size:13px; font-weight:700;
+  color:#607098; cursor:pointer; transition:filter .15s;
+}
+.pw-btn:hover { filter:brightness(.96); }
+.pw-error { font-size:12px; color:var(--c-pink); display:none; }
+.pw-error.on { display:block; }
+.pw-view-badge {
+  position:fixed; bottom:12px; right:16px; z-index:500;
+  background:linear-gradient(120deg,var(--sky2),var(--pink2));
+  color:#607098; font-size:10px; font-weight:700;
+  padding:4px 10px; border-radius:20px; opacity:.7;
+  font-family:'DM Mono',monospace;
+}
+</style>
+</head>
+<body>
+
+<!-- VIEWER PASSWORD SCREEN -->
+<div class="pw-screen" id="pwScreen" style="display:none">
+  <div class="pw-box">
+    <div class="pw-logo">🏷️</div>
+    <div class="pw-title">TagVault</div>
+    <div class="pw-sub">뷰어 모드입니다. 비밀번호를 입력하세요.</div>
+    <input class="pw-input" id="pwInput" type="password" placeholder="••••••" onkeydown="if(event.key==='Enter')checkPw()">
+    <button class="pw-btn" onclick="checkPw()">입장</button>
+    <div class="pw-error" id="pwError">비밀번호가 틀렸어요 🥲</div>
+  </div>
+</div>
+<div class="pw-view-badge" id="viewerBadge" style="display:none">👁 VIEW ONLY</div>
+
+<header>
+  <div class="logo">🏷️ TagVault <span class="logo-dot"></span></div>
+  <div class="header-divider"></div>
+  <div class="header-tabs">
+    <button class="header-tab active" data-tab="artist" onclick="switchTab('artist')">캐릭터명단</button>
+    <button class="header-tab" data-tab="style" onclick="switchTab('style')">베이스프롬</button>
+  </div>
+  <div class="header-right">
+    <span class="ver-badge">v10</span>
+    <button class="btn-new-cat" id="viewerSettingsBtn" onclick="openViewerSettings()" title="뷰어 공유 설정" style="border-color:rgba(196,224,255,.6);color:var(--c-sky)">🔗 공유 설정</button>
+    <button class="btn-new-cat" onclick="openAddCat()">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
+      카테고리 추가
+    </button>
+  </div>
+</header>
+
+<div class="sidebar">
+  <div class="sidebar-top">
+    <div class="sidebar-label" id="sidebarLabel">캐릭터명단</div>
+    <div class="search-box">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="검색..." id="searchInput" oninput="renderSidebar()">
+    </div>
+  </div>
+  <div class="cat-list" id="catList"></div>
+  <div class="sidebar-foot" id="sidebarFoot"></div>
+</div>
+
+<div class="main">
+  <div class="overview" id="emptyState">
+    <div class="overview-grid" id="overviewGrid"></div>
+  </div>
+  <div class="detail" id="detailView" style="display:none"></div>
+</div>
+
+<!-- MERGE BAR -->
+<div class="merge-bar" id="mergeBar">
+  <div class="merge-bar-left">
+    <div class="merge-bar-header">
+      <span class="merge-bar-title">✨ 통합 복사</span>
+      <span class="merge-count" id="mergeCount">0개 항목</span>
+      <button class="merge-clear" onclick="clearSelection()">전체 해제</button>
+    </div>
+    <div class="merge-pills" id="mergePills"></div>
+  </div>
+  <div class="merge-bar-right">
+    <button class="btn-merge-copy" onclick="mergeCopy()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      합쳐서 복사
+    </button>
+    <div class="merge-sep-type">
+      <button class="sep-btn active" id="sepComma" onclick="setSep('comma')">쉼표</button>
+      <button class="sep-btn" id="sepNewline" onclick="setSep('newline')">줄바꿈</button>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">×</button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- CAT MODAL -->
+<div class="overlay" id="catModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="catModalTitle">카테고리 추가</div>
+      <button class="modal-x" onclick="closeCatModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <!-- profile image -->
+      <div class="field">
+        <label>프로필 이미지</label>
+        <div class="profile-upload-area">
+          <div class="profile-preview" id="profilePreview" onclick="document.getElementById('profileFileInput').click()">
+            <span id="profileEmoji">🎨</span>
+          </div>
+          <div class="profile-upload-hint">
+            클릭하거나 <strong onclick="document.getElementById('profileFileInput').click()">파일 선택</strong>으로<br>
+            프로필 이미지를 업로드하세요<br>
+            <span style="color:var(--dim);font-size:10px">이미지 없으면 이모지 사용</span>
+          </div>
+        </div>
+        <input type="file" id="profileFileInput" accept="image/*" style="display:none" onchange="onProfileFile(event)">
+      </div>
+      <div class="field"><label>이름</label><input id="catName" placeholder="예: zombie ke"></div>
+      <div class="field"><label>태그 식별자 (옵션)</label><input id="catTag" placeholder="예: artist:zombie ke"></div>
+      <div class="field"><label>이모지 (프로필 없을 때 사용)</label><input id="catEmoji" placeholder="🎨" maxlength="4"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeCatModal()">취소</button>
+      <button class="btn-save" onclick="saveCat()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ENTRY MODAL -->
+<div class="overlay" id="entryModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">항목 추가</div>
+      <button class="modal-x" onclick="closeEntryModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>제목 (옵션)</label><input id="entryTitle" placeholder="예: 기본 태그셋"></div>
+      <div class="field">
+        <label>태그 목록 — 쉼표 또는 줄바꿈으로 구분</label>
+        <textarea id="entryTags" rows="4" placeholder="masterpiece, best quality, 1girl, solo, ..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeEntryModal()">취소</button>
+      <button class="btn-save" onclick="saveEntry()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAIR MODAL -->
+<div class="overlay" id="pairModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">💘 Pair 추가</div>
+      <button class="modal-x" onclick="closePairModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>프로필 이미지</label>
+        <div class="profile-upload-area">
+          <div class="profile-preview" id="pairProfilePreview" onclick="document.getElementById('pairProfileInput').click()">
+            <span>💘</span>
+          </div>
+          <div class="profile-upload-hint">
+            클릭하거나 <strong onclick="document.getElementById('pairProfileInput').click()">파일 선택</strong><br>
+            <span style="color:var(--dim);font-size:10px">없으면 이모지 사용</span>
+          </div>
+        </div>
+        <input type="file" id="pairProfileInput" accept="image/*" style="display:none" onchange="onPairProfileFile(event)">
+      </div>
+      <div class="field"><label>이름</label><input id="pairName" placeholder="예: detail tweaker"></div>
+      <div class="field"><label>이모지 (프로필 없을 때)</label><input id="pairEmoji" placeholder="💘" maxlength="4"></div>
+      <div class="field">
+        <label>태그 목록 — 쉼표 또는 줄바꿈으로 구분</label>
+        <textarea id="pairTags" rows="3" placeholder="lora:detail_tweaker:0.8, ..."></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closePairModal()">취소</button>
+      <button class="btn-save" onclick="savePair()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DB_KEY = 'tagvault_db_v5';
+let currentTab = 'artist';
+let selectedId = null;
+let editCatId = null;
+let entryTarget = null;
+let sepMode = 'comma';
+let pendingProfileB64 = null; // base64 string or null
+let selectedEntries = new Map();
+const PILL_COLORS = ['#5a96c4','#c05888','#52a880','#8458b8','#c07838','#42a0ae'];
+let colorIdx = 0;
+
+function loadDB() {
+  try { const r = localStorage.getItem(DB_KEY); return r ? JSON.parse(r) : {artist:[],style:[]}; }
+  catch { return {artist:[],style:[]}; }
+}
+function saveDB(db) { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+function getDB() { return loadDB(); }
+
+function initDemo() {
+  const db = loadDB();
+  if (db.artist.length) return;
+  db.artist = [
+    { id:'a1', name:'zombie ke', tag:'artist:zombie ke', emoji:'🎨', avatar:'',
+      entries:[{ id:'e1', title:'기본 태그셋', tags:['zombie ke','1girl','solo','masterpiece','best quality','detailed'], gallery:[] }] },
+    { id:'a2', name:'zippo (3756c)', tag:'artist:zippo (3756c)', emoji:'⚡', avatar:'',
+      entries:[{ id:'e2', title:'스타일 태그', tags:['zippo \\(3756c\\)','colorful','dynamic pose','anime style'], gallery:[] }] }
+  ];
+  db.style = [
+    { id:'s1', name:'애니메이션풍', tag:'anime style', emoji:'✨', avatar:'',
+      entries:[{ id:'se1', title:'기본 세트', tags:['anime','anime style','cel shading','vibrant colors','clean lines'], gallery:[] }] }
+  ];
+  saveDB(db);
+}
+
+/* ── PROFILE FILE ── */
+function onProfileFile(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    pendingProfileB64 = ev.target.result;
+    const prev = document.getElementById('profilePreview');
+    prev.innerHTML = `<img src="${pendingProfileB64}" alt="">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ── GALLERY FILE ── */
+function onGalleryFile(e, catId) {
+  const files = Array.from(e.target.files); if (!files.length) return;
+  const db = getDB();
+  let cat = null;
+  for (const tab of ['artist','style']) { cat = db[tab].find(c=>c.id===catId); if (cat) break; }
+  if (!cat) return;
+  if (!cat.gallery) cat.gallery = [];
+  let done = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      cat.gallery.push(ev.target.result);
+      done++;
+      if (done === files.length) { saveDB(db); renderDetail(selectedId); }
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+}
+
+function deleteGalleryImg(catId, imgIdx) {
+  const db = getDB();
+  let cat = null;
+  for (const tab of ['artist','style']) { cat = db[tab].find(c=>c.id===catId); if (cat) break; }
+  if (!cat) return;
+  cat.gallery.splice(imgIdx, 1);
+  saveDB(db); renderDetail(selectedId);
+}
+
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('on');
+}
+function closeLightbox() { document.getElementById('lightbox').classList.remove('on'); }
+
+/* ── OVERVIEW ── */
+function renderOverview() {
+  const db = getDB();
+  const cats = db[currentTab] || [];
+  const grid = document.getElementById('overviewGrid');
+  if (!grid) return;
+  if (!cats.length) {
+    grid.innerHTML = `<div class="ov-empty-hint"><div class="ring">🏷️</div><p>카테고리를 선택하세요</p></div>`;
+    return;
+  }
+  grid.innerHTML = cats.map(cat => {
+    const gallery = cat.gallery || [];
+    let thumbHtml = '';
+    if (cat.avatar) {
+      thumbHtml = `<img src="${cat.avatar}" alt="">`;
+    } else if (gallery.length >= 4) {
+      thumbHtml = `<div class="ov-gallery-strip">${gallery.slice(0,4).map(src=>`<img src="${src}" alt="">`).join('')}</div>`;
+    } else if (gallery.length > 0) {
+      thumbHtml = `<img src="${gallery[0]}" alt="">`;
+    } else {
+      thumbHtml = cat.emoji || '🏷️';
+    }
+    const entryCount = cat.entries ? cat.entries.length : 0;
+    const tagCount = cat.entries ? cat.entries.reduce((s,e)=>s+(e.tags||[]).length,0) : 0;
+    return `
+      <div class="ov-card" onclick="selectCat('${cat.id}')">
+        <div class="ov-card-thumb">${thumbHtml}</div>
+        <div class="ov-card-info">
+          <div class="ov-card-name">${esc(cat.name)}</div>
+          ${cat.tag ? `<div class="ov-card-sub">${esc(cat.tag)}</div>` : ''}
+          <div class="ov-card-count">항목 ${entryCount}개 · 태그 ${tagCount}개</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* ── SIDEBAR ── */
+function renderSidebar() {
+  const db = getDB();
+  const cats = db[currentTab];
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = cats.filter(c => c.name.toLowerCase().includes(q)||(c.tag||'').toLowerCase().includes(q));
+  document.getElementById('sidebarLabel').textContent = currentTab==='artist' ? '캐릭터명단' : '베이스프롬';
+  document.getElementById('sidebarFoot').textContent = `${filtered.length} / ${cats.length}개`;
+  document.getElementById('catList').innerHTML = filtered.map(cat => {
+    const avatarHtml = cat.avatar
+      ? `<div class="cat-avatar"><img src="${cat.avatar}" alt=""></div>`
+      : `<div class="cat-avatar">${cat.emoji||'🏷️'}</div>`;
+    return `
+    <button class="cat-item ${cat.id===selectedId?'active':''}" onclick="selectCat('${cat.id}')">
+      ${avatarHtml}
+      <div class="cat-info">
+        <div class="cat-name">${esc(cat.name)}</div>
+        ${cat.tag ? `<div class="cat-sub">${esc(cat.tag)}</div>` : ''}
+      </div>
+      <div class="cat-count">${cat.entries.length}</div>
+    </button>`;
+  }).join('');
+}
+
+/* ── DETAIL ── */
+function renderDetail(id) {
+  const db = getDB();
+  const cat = db[currentTab].find(c=>c.id===id);
+  if (!cat) return;
+  document.getElementById('emptyState').style.display = 'none';
+  const dv = document.getElementById('detailView');
+  dv.style.display = 'block';
+  const ks = ['k0','k1','k2','k3','k4','k5'];
+
+  const avatarHtml = cat.avatar
+    ? `<div class="hero-avatar"><img src="${cat.avatar}" alt=""></div>`
+    : `<div class="hero-avatar">${cat.emoji||'🏷️'}</div>`;
+
+  const entriesHtml = cat.entries.map((e, idx) => {
+    const key = cat.id+'_'+idx;
+    const isSel = selectedEntries.has(key);
+    return `
+    <div class="entry ${isSel?'selected':''}" id="entry_${key}">
+      <div class="entry-check-wrap">
+        <div class="entry-check" onclick="toggleEntry('${cat.id}',${idx},'${esc(e.title||'항목 '+(idx+1))}')">${isSel?'✓':''}</div>
+      </div>
+      <div class="entry-body">
+        <div class="entry-row">
+          <div class="entry-title-text">${e.title ? esc(e.title) : '태그 목록'}</div>
+          <div class="entry-btns">
+            <button class="btn-copy-all" onclick="copyAll('${cat.id}',${idx})">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              복사
+            </button>
+            <button class="btn-del-entry" onclick="delEntry('${cat.id}',${idx})">✕</button>
+          </div>
+        </div>
+        <div class="tags">${e.tags.map((t,i)=>`<span class="chip ${ks[i%6]}" onclick="copyTag('${esc(t)}')">${esc(t)}</span>`).join('')}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  dv.innerHTML = `
+    <div class="hero">
+      ${avatarHtml}
+      <div class="hero-body">
+        <div class="hero-name">${esc(cat.name)}</div>
+        ${cat.tag ? `<div class="hero-tag">${esc(cat.tag)}</div>` : ''}
+        <div class="hero-badges">
+          <span class="badge">항목 ${cat.entries.length}개</span>
+          <span class="badge">${currentTab==='artist'?'캐릭터명단':'베이스프롬'}</span>
+        </div>
+      </div>
+      <div class="hero-btns">
+        <button class="icon-btn" onclick="openEditCat('${cat.id}')">✏️</button>
+        <button class="icon-btn" onclick="delCat('${cat.id}')">🗑️</button>
+      </div>
+    </div>
+    <div class="entries">${entriesHtml}</div>
+    <button class="btn-add-entry" onclick="openAddEntry('${cat.id}')">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
+      항목 추가
+    </button>
+    ${buildSummaryBox(cat)}
+    ${currentTab==='artist' ? buildPairSection(cat) : ''}
+    <div class="cat-gallery-section">
+      <div class="cat-gallery-label">🖼️ 갤러리</div>
+      <div class="gallery" id="catGallery_${cat.id}"></div>
+    </div>
+  `;
+  // Attach cat-level gallery after render
+  const galleryZone = document.getElementById('catGallery_'+id);
+  if (galleryZone) {
+    const g = cat.gallery||[];
+    galleryZone.innerHTML = g.map((src,gi)=>`
+      <div class="gallery-img-wrap" onclick="openLightbox('${src.replace(/'/g,"\\'")}')">
+        <img src="${src}" alt="">
+        <button class="gallery-img-del" onclick="event.stopPropagation();deleteGalleryImg('${cat.id}',${gi})">✕</button>
+      </div>`).join('')+`
+      <button class="gallery-add" onclick="document.getElementById('catGalleryInput_${cat.id}').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15l5-5 4 4 3-3 4 4"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>
+        추가
+      </button>
+      <input type="file" id="catGalleryInput_${cat.id}" class="gallery-add-input" accept="image/*" multiple onchange="onGalleryFile(event,'${cat.id}')">
+    `;
+  }
+}
+
+/* ── SUMMARY BOX ── */
+function buildSummaryBox(cat) {
+  if (!cat.entries.length) return '';
+  const seen = new Set(); const allTags = [];
+  cat.entries.forEach(e => e.tags.forEach(t => { if(!seen.has(t)){seen.add(t);allTags.push(t);} }));
+  if (!allTags.length) return '';
+  const catId = cat.id;
+  return `
+    <div class="summary-box">
+      <div class="summary-header">
+        <div class="summary-title">✨ 전체 통합 태그 <span class="summary-tag-count">${allTags.length}개</span></div>
+        <div class="summary-actions">
+          <button class="sum-sep-btn ${sepMode==='comma'?'active':''}" id="sumSepComma_${catId}" onclick="setSepAndRefresh('comma','${catId}')">쉼표</button>
+          <button class="sum-sep-btn ${sepMode==='newline'?'active':''}" id="sumSepNl_${catId}" onclick="setSepAndRefresh('newline','${catId}')">줄바꿈</button>
+          <button class="btn-sum-copy" onclick="copySummary('${catId}')">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            한번에 복사
+          </button>
+        </div>
+      </div>
+      <div class="summary-chips">${allTags.map(t=>`<span class="sum-chip" onclick="copyTag('${esc(t)}')">${esc(t)}</span>`).join('')}</div>
+    </div>`;
+}
+
+function copySummary(catId) {
+  const db = getDB(); let cat = null;
+  for (const tab of ['artist','style']) { cat = db[tab].find(c=>c.id===catId); if(cat) break; }
+  if (!cat) return;
+  const seen = new Set(); const allTags = [];
+  cat.entries.forEach(e => e.tags.forEach(t => { if(!seen.has(t)){seen.add(t);allTags.push(t);} }));
+  copyText(allTags.join(sepMode==='newline'?'\n':', '), `✓ ${allTags.length}개 태그 복사됨`);
+}
+
+/* ── LORA SECTION ── */
+function buildPairSection(cat) {
+  const db = loadDB();
+  const loraCat = db.pair||[];
+  const loraHtml = loraCat.map((l,i) => {
+    const av = l.avatar ? `<img src="${l.avatar}" alt="">` : l.emoji||'💘';
+    return `
+      <div class="pair-card">
+        <div class="pair-avatar">${l.avatar?`<img src="${l.avatar}" alt="">`:l.emoji||'💘'}</div>
+        <div class="pair-body">
+          <div class="pair-name">${esc(l.name)}</div>
+          <div class="pair-tags">${(l.tags||[]).map((t,ti)=>`<span class="chip k${ti%6}" onclick="copyTag('${esc(t)}')">${esc(t)}</span>`).join('')}</div>
+        </div>
+        <div class="pair-actions">
+          <button class="btn-copy-all" onclick="copyPairAll(${i})">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            복사
+          </button>
+          <button class="btn-del-entry" onclick="deletePair(${i})">✕</button>
+        </div>
+      </div>`;
+  }).join('');
+  return `
+    <div class="pair-section">
+      <div class="pair-section-header">
+        <div class="pair-section-title">💘 Pair</div>
+        <button class="btn-sum-copy" onclick="openPairModal()" style="font-size:10px;padding:4px 10px">+ 추가</button>
+      </div>
+      ${loraCat.length===0 ? '<div class="pair-empty">Lora를 추가해보세요</div>' : loraHtml}
+    </div>`;
+}
+
+function copyPairAll(idx) {
+  const db = getDB(); const l = (db.pair||[])[idx]; if(!l) return;
+  copyText((l.tags||[]).join(', '), `💎 ${l.name} 복사됨`);
+}
+function deletePair(idx) {
+  if(!confirm('삭제할까요?')) return;
+  const db = getDB();
+  if (!db.pair) db.pair=[];
+  db.pair.splice(idx,1);
+  saveDB(db); renderDetail(selectedId);
+}
+
+function setSepAndRefresh(mode, catId) {
+  setSep(mode);
+  ['Comma','Nl'].forEach(k => {
+    const el = document.getElementById(`sumSep${k}_${catId}`);
+    if (el) el.classList.toggle('active', (k==='Comma'&&mode==='comma')||(k==='Nl'&&mode==='newline'));
+  });
+}
+
+/* ── SELECTION / MERGE ── */
+function toggleEntry(catId, entryIdx, label) {
+  const key = catId+'_'+entryIdx;
+  if (selectedEntries.has(key)) { selectedEntries.delete(key); }
+  else { selectedEntries.set(key, { catId, entryIdx, label, color: PILL_COLORS[colorIdx++ % PILL_COLORS.length] }); }
+  const card = document.getElementById('entry_'+key);
+  if (card) {
+    const isSel = selectedEntries.has(key);
+    card.classList.toggle('selected', isSel);
+    card.querySelector('.entry-check').textContent = isSel ? '✓' : '';
+  }
+  updateMergeBar();
+}
+
+function updateMergeBar() {
+  const bar = document.getElementById('mergeBar');
+  document.getElementById('mergeCount').textContent = selectedEntries.size+'개 항목';
+  document.getElementById('mergePills').innerHTML = [...selectedEntries.entries()].map(([key,info])=>`
+    <div class="merge-pill">
+      <div class="merge-pill-dot" style="background:${info.color}"></div>
+      ${esc(info.label)}
+      <button class="merge-pill-x" onclick="removeFromMerge('${key}')">×</button>
+    </div>`).join('');
+  bar.classList.toggle('on', selectedEntries.size > 0);
+}
+
+function removeFromMerge(key) {
+  selectedEntries.delete(key);
+  const card = document.getElementById('entry_'+key);
+  if (card) { card.classList.remove('selected'); const c=card.querySelector('.entry-check'); if(c) c.textContent=''; }
+  updateMergeBar();
+}
+
+function clearSelection() {
+  selectedEntries.forEach((_,key) => {
+    const card = document.getElementById('entry_'+key);
+    if (card) { card.classList.remove('selected'); const c=card.querySelector('.entry-check'); if(c) c.textContent=''; }
+  });
+  selectedEntries.clear(); updateMergeBar();
+}
+
+function mergeCopy() {
+  if (!selectedEntries.size) return;
+  const db = getDB(); const seen = new Set(); const all = [];
+  [...selectedEntries.values()].forEach(({catId,entryIdx}) => {
+    let cat = null;
+    for (const tab of ['artist','style']) { cat = db[tab].find(c=>c.id===catId); if(cat) break; }
+    if (cat && cat.entries[entryIdx]) cat.entries[entryIdx].tags.forEach(t => { if(!seen.has(t)){seen.add(t);all.push(t);} });
+  });
+  copyText(all.join(sepMode==='newline'?'\n':', '), `✓ ${all.length}개 태그 합쳐서 복사됨`);
+}
+
+function setSep(mode) {
+  sepMode = mode;
+  document.getElementById('sepComma').classList.toggle('active', mode==='comma');
+  document.getElementById('sepNewline').classList.toggle('active', mode==='newline');
+}
+
+/* ── CLIPBOARD ── */
+function copyText(text, msg) {
+  const done = () => toast(msg||'복사됨');
+  if (navigator.clipboard && location.protocol !== 'file:') {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallback(text, done));
+  } else { fallback(text, done); }
+}
+function fallback(text, cb) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try { document.execCommand('copy'); cb(); } catch { toast('복사 실패'); }
+  document.body.removeChild(ta);
+}
+
+/* ── COMMON ── */
+function switchTab(tab) {
+  currentTab = tab; selectedId = null;
+  document.querySelectorAll('.header-tab').forEach((b,i) => b.classList.toggle('active',(i===0&&tab==='artist')||(i===1&&tab==='style')));
+  document.getElementById('emptyState').style.display = '';
+  document.getElementById('detailView').style.display = 'none';
+  renderSidebar();
+  renderOverview();
+}
+function selectCat(id) {
+  selectedId = id;
+  document.getElementById('emptyState').style.display = 'none';
+  renderSidebar(); renderDetail(id);
+}
+function copyTag(tag) { copyText(tag, `"${tag}" 복사됨`); }
+function copyAll(catId, idx) {
+  const db = getDB();
+  const cat = [...db.artist,...db.style].find(c=>c.id===catId);
+  if (!cat) return;
+  copyText(cat.entries[idx].tags.join(', '), '복사 완료');
+}
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('on'), 2200);
+}
+function delEntry(catId, idx) {
+  if (!confirm('이 항목을 삭제할까요?')) return;
+  const key = catId+'_'+idx; selectedEntries.delete(key); updateMergeBar();
+  const db = getDB();
+  db[currentTab].find(c=>c.id===catId).entries.splice(idx,1);
+  saveDB(db); renderSidebar(); renderDetail(catId);
+}
+function delCat(catId) {
+  if (!confirm('카테고리를 삭제할까요?')) return;
+  [...selectedEntries.keys()].filter(k=>k.startsWith(catId+'_')).forEach(k=>selectedEntries.delete(k));
+  updateMergeBar();
+  const db = getDB();
+  db[currentTab] = db[currentTab].filter(c=>c.id!==catId);
+  saveDB(db); selectedId = null;
+  document.getElementById('emptyState').style.display = '';
+  document.getElementById('detailView').style.display = 'none';
+  renderSidebar();
+  renderOverview();
+}
+
+/* ── CAT MODAL ── */
+function openAddCat() {
+  editCatId = null; pendingProfileB64 = null;
+  document.getElementById('catModalTitle').textContent = '카테고리 추가';
+  ['catName','catTag'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('catEmoji').value = currentTab==='artist'?'🎨':'✨';
+  document.getElementById('profilePreview').innerHTML = '<span id="profileEmoji">🎨</span>';
+  document.getElementById('profileFileInput').value = '';
+  document.getElementById('catModal').classList.add('on');
+}
+function openEditCat(id) {
+  const db = getDB(); const cat = db[currentTab].find(c=>c.id===id); if(!cat) return;
+  editCatId = id; pendingProfileB64 = cat.avatar || null;
+  document.getElementById('catModalTitle').textContent = '카테고리 편집';
+  document.getElementById('catName').value = cat.name;
+  document.getElementById('catTag').value = cat.tag||'';
+  document.getElementById('catEmoji').value = cat.emoji||'🏷️';
+  const prev = document.getElementById('profilePreview');
+  prev.innerHTML = cat.avatar ? `<img src="${cat.avatar}" alt="">` : `<span>${cat.emoji||'🎨'}</span>`;
+  document.getElementById('catModal').classList.add('on');
+}
+function closeCatModal() { document.getElementById('catModal').classList.remove('on'); }
+function saveCat() {
+  const name = document.getElementById('catName').value.trim();
+  if (!name) return alert('이름을 입력하세요.');
+  const tag = document.getElementById('catTag').value.trim();
+  const emoji = document.getElementById('catEmoji').value.trim() || '🏷️';
+  const avatar = pendingProfileB64 || '';
+  const db = getDB();
+  if (editCatId) {
+    const cat = db[currentTab].find(c=>c.id===editCatId);
+    if (cat) { cat.name=name; cat.tag=tag; cat.emoji=emoji; cat.avatar=avatar; }
+  } else {
+    db[currentTab].push({ id:'c'+Date.now(), name, tag, emoji, avatar, entries:[] });
+  }
+  saveDB(db); closeCatModal(); renderSidebar(); renderOverview();
+  if (editCatId && selectedId===editCatId) renderDetail(editCatId);
+}
+
+/* ── ENTRY MODAL ── */
+function openAddEntry(catId) {
+  entryTarget = catId;
+  ['entryTitle','entryTags'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('entryModal').classList.add('on');
+}
+function closeEntryModal() { document.getElementById('entryModal').classList.remove('on'); }
+function saveEntry() {
+  const title = document.getElementById('entryTitle').value.trim();
+  const tags = document.getElementById('entryTags').value.split(/[\n,]+/).map(t=>t.trim()).filter(Boolean);
+  if (!tags.length) return alert('태그를 최소 하나 입력하세요.');
+  const db = getDB();
+  const cat = db[currentTab].find(c=>c.id===entryTarget);
+  if (cat) cat.entries.push({ id:'e'+Date.now(), title, tags, gallery:[] });
+  saveDB(db); closeEntryModal(); renderDetail(entryTarget); renderSidebar();
+}
+
+let pendingPairB64 = null;
+function onPairProfileFile(e) {
+  const file = e.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    pendingPairB64 = ev.target.result;
+    document.getElementById('pairProfilePreview').innerHTML = `<img src="${pendingPairB64}" alt="">`;
+  };
+  r.readAsDataURL(file);
+}
+function openPairModal() {
+  pendingPairB64 = null;
+  ['pairName','pairEmoji','pairTags'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pairEmoji').value='💘';
+  document.getElementById('pairProfilePreview').innerHTML='<span>💘</span>';
+  document.getElementById('pairProfileInput').value='';
+  document.getElementById('pairModal').classList.add('on');
+}
+function closePairModal() { document.getElementById('pairModal').classList.remove('on'); }
+function savePair() {
+  const name = document.getElementById('pairName').value.trim();
+  if (!name) return alert('이름을 입력하세요.');
+  const emoji = document.getElementById('pairEmoji').value.trim()||'💘';
+  const tags = document.getElementById('pairTags').value.split(/[\n,]+/).map(t=>t.trim()).filter(Boolean);
+  const db = getDB();
+  if (!db.pair) db.pair=[];
+  db.pair.push({ name, emoji, avatar: pendingPairB64||'', tags });
+  saveDB(db); closePairModal(); renderDetail(selectedId);
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e=>{ if(e.target===o) o.classList.remove('on'); }));
+
+
+/* ━━ VIEWER MODE ━━ */
+const VIEWER_PW_KEY = 'tagvault_viewer_pw'; // localStorage에 저장된 해시와 비교
+const params = new URLSearchParams(location.search);
+const IS_VIEWER = params.has('view');
+const PAIR_KEY = params.get('pair') || '';
+
+// 비밀번호는 localStorage에 해시로 저장 (편집자가 설정)
+// 기본값: 'tagvault' (편집자가 설정 안 했을 때)
+function getPwHash() {
+  return localStorage.getItem(VIEWER_PW_KEY) || simpleHash('tagvault');
+}
+function simpleHash(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  return String(h);
+}
+
+function checkPw() {
+  const val = document.getElementById('pwInput').value;
+  if (simpleHash(val) === getPwHash()) {
+    sessionStorage.setItem('tagvault_authed', '1');
+    document.getElementById('pwScreen').style.display = 'none';
+    applyViewerMode();
+  } else {
+    document.getElementById('pwError').classList.add('on');
+    document.getElementById('pwInput').value = '';
+  }
+}
+
+function applyViewerMode() {
+  document.body.classList.add('viewer-mode');
+  // Pair 표시 여부: pair 파라미터가 localStorage pair_key와 일치해야 함
+  const storedPairKey = localStorage.getItem('tagvault_pair_key') || 'secret';
+  if (PAIR_KEY && PAIR_KEY === storedPairKey) {
+    document.body.classList.add('show-pair');
+  }
+  document.getElementById('viewerBadge').style.display = 'block';
+  // 베이스프롬 탭 강제로 캐릭터명단으로
+  switchTab('artist');
+}
+
+function initViewerMode() {
+  if (!IS_VIEWER) return; // 편집자 모드면 아무것도 안 함
+  if (sessionStorage.getItem('tagvault_authed') === '1') {
+    applyViewerMode();
+  } else {
+    document.getElementById('pwScreen').style.display = 'flex';
+  }
+}
+
+/* 편집자 전용: 비밀번호 & Pair 키 설정 */
+function openViewerSettings() {
+  const newPw = prompt('뷰어 비밀번호를 설정하세요 (현재 비밀번호 변경):', '');
+  if (newPw === null) return;
+  if (newPw.trim() === '') return alert('비밀번호를 입력하세요.');
+  localStorage.setItem(VIEWER_PW_KEY, simpleHash(newPw.trim()));
+
+  const newPairKey = prompt('Pair 공개 키를 설정하세요\n(이 키를 ?pair=키 로 URL에 붙이면 Pair가 보여요):', localStorage.getItem('tagvault_pair_key')||'secret');
+  if (newPairKey !== null && newPairKey.trim()) {
+    localStorage.setItem('tagvault_pair_key', newPairKey.trim());
+  }
+
+  const base = location.href.split('?')[0];
+  const viewUrl = base + '?view=1';
+  const viewPairUrl = base + '?view=1&pair=' + (newPairKey||localStorage.getItem('tagvault_pair_key')||'secret');
+  alert(
+    '✅ 설정 완료!\n\n' +
+    '📋 뷰어 링크 (Pair 숨김):\n' + viewUrl + '\n\n' +
+    '💘 뷰어 링크 (Pair 포함):\n' + viewPairUrl
+  );
+}
+
+initDemo();
+renderSidebar();
+renderOverview();
+initViewerMode();
+</script>
+</body>
+</html>
