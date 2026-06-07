@@ -500,8 +500,8 @@ body.viewer-mode.show-pair .pair-section { display:block; }
         </div>
         <input type="file" id="profileFileInput" accept="image/*" style="display:none" onchange="onProfileFile(event)">
       </div>
-      <div class="field"><label>이름</label><input id="catName" placeholder="예: zombie ke"></div>
-      <div class="field"><label>태그 식별자 (옵션)</label><input id="catTag" placeholder="예: artist:zombie ke"></div>
+      <div class="field"><label>이름</label><input id="catName" placeholder="예: 호무라"></div>
+      <div class="field"><label>태그 식별자 (옵션)</label><input id="catTag" placeholder="예: artist:호무라"></div>
       <div class="field"><label>이모지 (프로필 없을 때 사용)</label><input id="catEmoji" placeholder="🎨" maxlength="4"></div>
     </div>
     <div class="modal-foot">
@@ -519,7 +519,7 @@ body.viewer-mode.show-pair .pair-section { display:block; }
       <button class="modal-x" onclick="closeEntryModal()">×</button>
     </div>
     <div class="modal-body">
-      <div class="field"><label>제목 (옵션)</label><input id="entryTitle" placeholder="예: 기본 태그셋"></div>
+      <div class="field"><label>제목 (옵션)</label><input id="entryTitle" placeholder="예: 기본 태그"></div>
       <div class="field">
         <label>태그 목록 — 쉼표 또는 줄바꿈으로 구분</label>
         <textarea id="entryTags" rows="4" placeholder="masterpiece, best quality, 1girl, solo, ..."></textarea>
@@ -583,33 +583,44 @@ function loadDB() {
   try { const r = localStorage.getItem(DB_KEY); return r ? JSON.parse(r) : {artist:[],style:[]}; }
   catch { return {artist:[],style:[]}; }
 }
-function saveDB(db) { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+function saveDB(db) {
+  try {
+    localStorage.setItem(DB_KEY, JSON.stringify(db));
+  } catch(e) {
+    alert('⚠️ 저장 실패: 용량이 부족해요.\n이미지 크기를 줄이거나 갤러리 이미지를 정리해보세요.');
+  }
+}
 function getDB() { return loadDB(); }
 
 function initDemo() {
-  const db = loadDB();
-  if (db.artist.length) return;
-  db.artist = [
-    { id:'a1', name:'zombie ke', tag:'artist:zombie ke', emoji:'🎨', avatar:'',
-      entries:[{ id:'e1', title:'기본 태그셋', tags:['zombie ke','1girl','solo','masterpiece','best quality','detailed'], gallery:[] }] },
-    { id:'a2', name:'zippo (3756c)', tag:'artist:zippo (3756c)', emoji:'⚡', avatar:'',
-      entries:[{ id:'e2', title:'스타일 태그', tags:['zippo \\(3756c\\)','colorful','dynamic pose','anime style'], gallery:[] }] }
-  ];
-  db.style = [
-    { id:'s1', name:'애니메이션풍', tag:'anime style', emoji:'✨', avatar:'',
-      entries:[{ id:'se1', title:'기본 세트', tags:['anime','anime style','cel shading','vibrant colors','clean lines'], gallery:[] }] }
-  ];
-  saveDB(db);
+  // 기본 데이터 없음
 }
 
 /* ── PROFILE FILE ── */
+function resizeImage(dataUrl, maxSize, quality, cb) {
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    let w = img.width, h = img.height;
+    if (w > h) { if (w > maxSize) { h = h * maxSize / w; w = maxSize; } }
+    else        { if (h > maxSize) { w = w * maxSize / h; h = maxSize; } }
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    cb(canvas.toDataURL('image/jpeg', quality));
+  };
+  img.src = dataUrl;
+}
+
 function onProfileFile(e) {
   const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
   reader.onload = ev => {
-    pendingProfileB64 = ev.target.result;
-    const prev = document.getElementById('profilePreview');
-    prev.innerHTML = `<img src="${pendingProfileB64}" alt="">`;
+    // 프로필은 300px로 압축 (충분히 작게)
+    resizeImage(ev.target.result, 300, 0.85, b64 => {
+      pendingProfileB64 = b64;
+      const prev = document.getElementById('profilePreview');
+      prev.innerHTML = `<img src="${b64}" alt="">`;
+    });
   };
   reader.readAsDataURL(file);
 }
@@ -626,9 +637,12 @@ function onGalleryFile(e, catId) {
   files.forEach(file => {
     const reader = new FileReader();
     reader.onload = ev => {
-      cat.gallery.push(ev.target.result);
-      done++;
-      if (done === files.length) { saveDB(db); renderDetail(selectedId); }
+      // 갤러리는 800px로 압축
+      resizeImage(ev.target.result, 800, 0.82, b64 => {
+        cat.gallery.push(b64);
+        done++;
+        if (done === files.length) { saveDB(db); renderDetail(selectedId); }
+      });
     };
     reader.readAsDataURL(file);
   });
@@ -680,7 +694,7 @@ function renderOverview() {
         <div class="ov-card-info">
           <div class="ov-card-name">${esc(cat.name)}</div>
           ${cat.tag ? `<div class="ov-card-sub">${esc(cat.tag)}</div>` : ''}
-          <div class="ov-card-count">항목 ${entryCount}개 · 태그 ${tagCount}개</div>
+
         </div>
       </div>`;
   }).join('');
@@ -1060,8 +1074,10 @@ function onPairProfileFile(e) {
   const file = e.target.files[0]; if(!file) return;
   const r = new FileReader();
   r.onload = ev => {
-    pendingPairB64 = ev.target.result;
-    document.getElementById('pairProfilePreview').innerHTML = `<img src="${pendingPairB64}" alt="">`;
+    resizeImage(ev.target.result, 300, 0.85, b64 => {
+      pendingPairB64 = b64;
+      document.getElementById('pairProfilePreview').innerHTML = `<img src="${b64}" alt="">`;
+    });
   };
   r.readAsDataURL(file);
 }
@@ -1132,7 +1148,12 @@ function applyViewerMode() {
 }
 
 function initViewerMode() {
-  if (!IS_VIEWER) return; // 편집자 모드면 아무것도 안 함
+  if (!IS_VIEWER) return;
+  // 비밀번호 없음으로 설정된 경우 바로 입장
+  if (getPwHash() === 'NO_PW') {
+    applyViewerMode();
+    return;
+  }
   if (sessionStorage.getItem('tagvault_authed') === '1') {
     applyViewerMode();
   } else {
@@ -1142,10 +1163,13 @@ function initViewerMode() {
 
 /* 편집자 전용: 비밀번호 & Pair 키 설정 */
 function openViewerSettings() {
-  const newPw = prompt('뷰어 비밀번호를 설정하세요 (현재 비밀번호 변경):', '');
+  const newPw = prompt('뷰어 비밀번호를 설정하세요.\n(비밀번호 없이 공유하려면 빈칸으로 확인)', '');
   if (newPw === null) return;
-  if (newPw.trim() === '') return alert('비밀번호를 입력하세요.');
-  localStorage.setItem(VIEWER_PW_KEY, simpleHash(newPw.trim()));
+  if (newPw.trim() === '') {
+    localStorage.setItem(VIEWER_PW_KEY, 'NO_PW');
+  } else {
+    localStorage.setItem(VIEWER_PW_KEY, simpleHash(newPw.trim()));
+  }
 
   const newPairKey = prompt('Pair 공개 키를 설정하세요\n(이 키를 ?pair=키 로 URL에 붙이면 Pair가 보여요):', localStorage.getItem('tagvault_pair_key')||'secret');
   if (newPairKey !== null && newPairKey.trim()) {
@@ -1155,10 +1179,12 @@ function openViewerSettings() {
   const base = location.href.split('?')[0];
   const viewUrl = base + '?view=1';
   const viewPairUrl = base + '?view=1&pair=' + (newPairKey||localStorage.getItem('tagvault_pair_key')||'secret');
+  const pwNote = (newPw.trim() === '') ? '🔓 비밀번호 없음 (바로 입장)' : '🔒 비밀번호 설정됨';
   alert(
-    '✅ 설정 완료!\n\n' +
+    '✅ 설정 완료! ' + pwNote + '\n\n' +
     '📋 뷰어 링크 (Pair 숨김):\n' + viewUrl + '\n\n' +
-    '💘 뷰어 링크 (Pair 포함):\n' + viewPairUrl
+    '💘 뷰어 링크 (Pair 포함):\n' + viewPairUrl + '\n\n' +
+    '링크를 복사해서 공유하세요!'
   );
 }
 
