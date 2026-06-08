@@ -64,7 +64,7 @@ header{grid-column:1/-1;display:flex;align-items:center;padding:0 14px;gap:6px;b
 .catinfo{flex:1;min-width:0;}
 .catname{font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .catbtn.on .catname{color:var(--cs);}
-.catsub{font-size:10px;color:var(--dim);font-family:'DM Mono',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+.catsub{font-size:10px;color:var(--dim);font-family:'Noto Sans KR',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
 .sbfoot{padding:8px 12px;border-top:1px solid var(--border);font-size:10px;color:var(--dim);font-family:'DM Mono',monospace;flex-shrink:0;}
 
 /* MAIN */
@@ -105,8 +105,8 @@ header{grid-column:1/-1;display:flex;align-items:center;padding:0 14px;gap:6px;b
 body.card-vertical .ovcard{aspect-ratio:3/4;}
 body.card-horizontal .ovcard{aspect-ratio:16/9;}
 body.card-horizontal .group-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));}
-body.frame-polaroid.card-horizontal .ovcard{aspect-ratio:4/3;}
-body.frame-polaroid.card-vertical .ovcard{aspect-ratio:3/4;}
+body.frame-polaroid.card-horizontal .ovcard{aspect-ratio:16/9 !important;}
+body.frame-polaroid.card-vertical .ovcard{aspect-ratio:3/4 !important;}
 
 /* CARD FRAMES */
 body.frame-round .ovcard{border-radius:24px;}
@@ -116,7 +116,7 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 
 /* POLAROID - 완전 재작성 */
 body.frame-polaroid .ovcard{
-  aspect-ratio:unset !important;
+  aspect-ratio:3/4 !important;
   background:var(--white);
   border:1px solid #e0d8c8;
   box-shadow:2px 4px 12px rgba(0,0,0,.18),0 0 0 1px rgba(0,0,0,.04);
@@ -199,7 +199,7 @@ body.frame-polaroid .ovsub{
 .heroav img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .herobody{flex:1;min-width:0;}
 .heroname{font-size:17px;font-weight:700;letter-spacing:-.3px;margin-bottom:2px;}
-.herotag{font-family:'DM Mono',monospace;font-size:11px;color:var(--cs);margin-bottom:7px;}
+.herotag{font-family:'Noto Sans KR',sans-serif;font-size:11px;color:var(--cs);margin-bottom:7px;}
 .herobadges{display:flex;gap:5px;flex-wrap:wrap;}
 .badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--bg);color:var(--muted);border:1px solid var(--border);}
 .memobox{margin-top:8px;font-size:12px;color:var(--muted);line-height:1.7;white-space:pre-wrap;word-break:break-all;}
@@ -422,7 +422,7 @@ body.viewer.hide-style [data-tab="style"]{display:none !important;}
       <button class="htab" data-tab="style" onclick="switchTab('style')" ondblclick="editTabName('style',this)"><span id="tlab-style">베이스프롬</span></button>
     </div>
     <div class="hright">
-      <span class="vbadge">v49</span>
+      <span class="vbadge">v51</span>
       <button class="hbtn vonly" id="themebtn" onclick="openTheme()">🎨</button>
       <button class="hbtn vonly" id="cardbtn" onclick="openCardStyle()">⊞</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
@@ -683,33 +683,33 @@ function signOut(){fbAuth.signOut();}
 let dbListener=null;
 function listenData(uid){
   if(dbListener) dbListener();
-  fbDB.ref('users/'+uid).on('value',snap=>{
+  // 데이터 구독
+  dbListener = ()=>{};
+  const dataRef = fbDB.ref('users/'+uid);
+  dataRef.on('value',snap=>{
     const v=snap.val()||{};
     cache={
       artist:v.artist?Object.values(v.artist):[],
       style:v.style?Object.values(v.style):[],
       pair:v.pair?Object.values(v.pair):[]
     };
-    // settings 적용 (뷰어도 실시간 반영)
-    if(v.settings){
-      if(v.settings.theme) applyTheme(v.settings.theme);
-      if(v.settings.cardStyle){
-        localStorage.setItem('tv_cardstyle',v.settings.cardStyle);
-        loadCardStyle();
-      }
-      if(v.settings.cardFrame){
-        localStorage.setItem('tv_cardframe',v.settings.cardFrame);
-        loadCardStyle();
-      }
-    }
     renderSidebar();renderOverview();
     if(selId) renderDetail(selId);
+  });
+  // settings 별도 실시간 구독
+  fbDB.ref('users/'+uid+'/settings').on('value',snap=>{
+    const s=snap.val();
+    if(!s) return;
+    if(s.theme) applyTheme(s.theme);
+    if(s.cardStyle){ localStorage.setItem('tv_cardstyle',s.cardStyle); loadCardStyle(); }
+    if(s.cardFrame){ localStorage.setItem('tv_cardframe',s.cardFrame); loadCardStyle(); }
   });
 }
 
 function saveDB(){
   if(IS_VIEW||!currentUser) return;
-  fbDB.ref('users/'+currentUser.uid).set({
+  // set() 대신 update()로 — settings 경로 건드리지 않음
+  fbDB.ref('users/'+currentUser.uid).update({
     artist:cache.artist.length?cache.artist:null,
     style:cache.style.length?cache.style:null,
     pair:cache.pair.length?cache.pair:null
@@ -752,7 +752,8 @@ function openImgPosFromModal(){
 }
 
 function handleCardClick(e,catId){
-  if(e.detail>=2) return; // 더블클릭이면 무시
+  // 더블클릭이면 완전 무시 (ondblclick이 처리)
+  if(e.detail>=2){e.preventDefault();e.stopPropagation();return;}
   selectCat(catId);
 }
 
@@ -1277,11 +1278,11 @@ function loadCardStyle(){
 }
 function setCardRatio(r){
   localStorage.setItem('tv_cardstyle',r);loadCardStyle();updateCardStyleUI();
-  if(currentUser&&fbDB) fbDB.ref('users/'+currentUser.uid+'/settings').update({cardStyle:r});
+  if(currentUser&&fbDB) fbDB.ref('users/'+currentUser.uid+'/settings/cardStyle').set(r).catch(e=>console.error('cardStyle save:',e));
 }
 function setCardFrame(f){
   localStorage.setItem('tv_cardframe',f);loadCardStyle();updateCardStyleUI();
-  if(currentUser&&fbDB) fbDB.ref('users/'+currentUser.uid+'/settings').update({cardFrame:f});
+  if(currentUser&&fbDB) fbDB.ref('users/'+currentUser.uid+'/settings/cardFrame').set(f).catch(e=>console.error('cardFrame save:',e));
 }
 function updateCardStyleUI(){
   const s=localStorage.getItem('tv_cardstyle')||'vertical';
@@ -1330,7 +1331,7 @@ function saveTheme(){
   ['bg','sky','sky2','pink','pink2','border','cs','cp'].forEach(k=>t[k]=getComputedStyle(document.documentElement).getPropertyValue('--'+k).trim());
   localStorage.setItem('tv_theme',JSON.stringify(t));
   // Firebase에도 저장
-  if(currentUser&&fbDB) fbDB.ref('users/'+currentUser.uid+'/settings/theme').set(t);
+  if(currentUser&&fbDB) fbDB.ref('users/'+currentUser.uid+'/settings/theme').set(t).catch(e=>console.error('theme save:',e));
   closeTheme();toast('테마 저장됨!');
 }
 function resetTheme(){localStorage.removeItem('tv_theme');applyTheme(THEME_PRESETS[0]);openTheme();}
