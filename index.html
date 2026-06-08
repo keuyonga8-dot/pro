@@ -105,6 +105,8 @@ header{grid-column:1/-1;display:flex;align-items:center;padding:0 14px;gap:6px;b
 body.card-vertical .ovcard{aspect-ratio:3/4;}
 body.card-horizontal .ovcard{aspect-ratio:16/9;}
 body.card-horizontal .group-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));}
+body.frame-polaroid.card-horizontal .ovcard{aspect-ratio:4/3;}
+body.frame-polaroid.card-vertical .ovcard{aspect-ratio:3/4;}
 
 /* CARD FRAMES */
 body.frame-round .ovcard{border-radius:24px;}
@@ -420,7 +422,7 @@ body.viewer.hide-style [data-tab="style"]{display:none !important;}
       <button class="htab" data-tab="style" onclick="switchTab('style')" ondblclick="editTabName('style',this)"><span id="tlab-style">베이스프롬</span></button>
     </div>
     <div class="hright">
-      <span class="vbadge">v48</span>
+      <span class="vbadge">v49</span>
       <button class="hbtn vonly" id="themebtn" onclick="openTheme()">🎨</button>
       <button class="hbtn vonly" id="cardbtn" onclick="openCardStyle()">⊞</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
@@ -495,7 +497,7 @@ body.viewer.hide-style [data-tab="style"]{display:none !important;}
       <div class="field"><label>이모지</label><input class="finput" id="catemoji" placeholder="🎨" maxlength="4"></div>
       <div class="field"><label>메모 (엔터 적용)</label><textarea class="ftarea" id="catmemo" rows="2" placeholder="자유롭게..."></textarea></div>
     </div>
-    <div class="mfoot"><button class="cancelbtn" onclick="closeCatModal()">취소</button><button class="savebtn" onclick="saveCat()">저장</button></div>
+    <div class="mfoot"><button class="cancelbtn" onclick="openImgPosFromModal()">🖼️ 이미지 위치</button><button class="cancelbtn" onclick="closeCatModal()">취소</button><button class="savebtn" onclick="saveCat()">저장</button></div>
   </div>
 </div>
 
@@ -688,6 +690,18 @@ function listenData(uid){
       style:v.style?Object.values(v.style):[],
       pair:v.pair?Object.values(v.pair):[]
     };
+    // settings 적용 (뷰어도 실시간 반영)
+    if(v.settings){
+      if(v.settings.theme) applyTheme(v.settings.theme);
+      if(v.settings.cardStyle){
+        localStorage.setItem('tv_cardstyle',v.settings.cardStyle);
+        loadCardStyle();
+      }
+      if(v.settings.cardFrame){
+        localStorage.setItem('tv_cardframe',v.settings.cardFrame);
+        loadCardStyle();
+      }
+    }
     renderSidebar();renderOverview();
     if(selId) renderDetail(selId);
   });
@@ -731,6 +745,12 @@ function delGalImg(catId,idx){
 }
 
 // ── IMAGE POSITION ──
+function openImgPosFromModal(){
+  if(!editCatId)return;
+  closeCatModal();
+  setTimeout(()=>openImgPos(editCatId),100);
+}
+
 function handleCardClick(e,catId){
   if(e.detail>=2) return; // 더블클릭이면 무시
   selectCat(catId);
@@ -1082,24 +1102,7 @@ function applyViewerMode(){
   if(PAIR_KEY)document.body.classList.add('showpair');
   document.body.classList.add('viewer');
 
-  // 테마 적용 (URL 파라미터 우선)
-  const thParam=params.get('th');
-  if(thParam){
-    try{
-      const t=JSON.parse(decodeURIComponent(thParam));
-      applyTheme(t);
-    }catch(e){console.warn('theme parse fail',e);}
-  } else {
-    loadTheme(); // 저장된 테마 없으면 기본
-  }
-  // 카드 스타일 적용 (URL 파라미터 우선)
-  const csParam=params.get('cs'),cfParam=params.get('cf');
-  const cardStyle=csParam||'vertical';
-  const cardFrame=cfParam||'none';
-  document.body.classList.remove('card-vertical','card-horizontal');
-  document.body.classList.add('card-'+cardStyle);
-  ['none','round','square','shadow','border','polaroid'].forEach(fr=>document.body.classList.remove('frame-'+fr));
-  document.body.classList.add('frame-'+cardFrame);
+  // 테마/카드스타일은 listenData에서 Firebase 실시간으로 적용됨
 }
 
 // ── SHARE SETTINGS ──
@@ -1119,19 +1122,12 @@ function openShareSettings(){
   const theme=localStorage.getItem('tv_theme')||'';
   const cardStyle=localStorage.getItem('tv_cardstyle')||'vertical';
   const cardFrame=localStorage.getItem('tv_cardframe')||'none';
-  // 테마 항상 포함 (현재 적용된 CSS 변수 값 기준)
-  const currentTheme = {};
-  ['bg','sky','sky2','pink','pink2','border','cs','cp'].forEach(k=>{
-    currentTheme[k] = getComputedStyle(document.documentElement).getPropertyValue('--'+k).trim();
-  });
-  const thParam = '&th=' + encodeURIComponent(JSON.stringify(currentTheme));
-  const csParamShare = '&cs=' + cardStyle;
-  const cfParamShare = cardFrame !== 'none' ? '&cf=' + cardFrame : '';
+  // 테마/카드스타일은 Firebase 실시간 반영 — URL 파라미터 불필요
   const csParam=cardStyle!=='vertical'?'&cs='+cardStyle:'';
   const cfParam=cardFrame!=='none'?'&cf='+cardFrame:'';
   const base=location.origin+location.pathname;
-  document.getElementById('sharelink1').value=`${base}?view=1&uid=${uid}${pwParam}${styleParam}${thParam}${csParamShare}${cfParamShare}`;
-  document.getElementById('sharelink2').value=`${base}?view=1&uid=${uid}${pwParam}&pair=${pairKey}${styleParam}${thParam}${csParamShare}${cfParamShare}`;
+  document.getElementById('sharelink1').value=`${base}?view=1&uid=${uid}${pwParam}${styleParam}`;
+  document.getElementById('sharelink2').value=`${base}?view=1&uid=${uid}${pwParam}&pair=${pairKey}${styleParam}`;
   document.getElementById('sharecpbtn1').textContent='복사';document.getElementById('sharecpbtn1').classList.remove('done');
   document.getElementById('sharecpbtn2').textContent='복사';document.getElementById('sharecpbtn2').classList.remove('done');
   document.getElementById('sharepop').classList.add('on');
@@ -1279,8 +1275,14 @@ function loadCardStyle(){
   FRAMES.forEach(fr=>document.body.classList.remove('frame-'+fr));
   document.body.classList.add('frame-'+f);
 }
-function setCardRatio(r){localStorage.setItem('tv_cardstyle',r);loadCardStyle();updateCardStyleUI();}
-function setCardFrame(f){localStorage.setItem('tv_cardframe',f);loadCardStyle();updateCardStyleUI();}
+function setCardRatio(r){
+  localStorage.setItem('tv_cardstyle',r);loadCardStyle();updateCardStyleUI();
+  if(currentUser&&fbDB) fbDB.ref('users/'+currentUser.uid+'/settings').update({cardStyle:r});
+}
+function setCardFrame(f){
+  localStorage.setItem('tv_cardframe',f);loadCardStyle();updateCardStyleUI();
+  if(currentUser&&fbDB) fbDB.ref('users/'+currentUser.uid+'/settings').update({cardFrame:f});
+}
 function updateCardStyleUI(){
   const s=localStorage.getItem('tv_cardstyle')||'vertical';
   const f=localStorage.getItem('tv_cardframe')||'none';
@@ -1326,7 +1328,10 @@ function onThemeHex(key,val){if(/^#[0-9a-fA-F]{6}$/.test(val)){const pk=document
 function saveTheme(){
   const t={};
   ['bg','sky','sky2','pink','pink2','border','cs','cp'].forEach(k=>t[k]=getComputedStyle(document.documentElement).getPropertyValue('--'+k).trim());
-  localStorage.setItem('tv_theme',JSON.stringify(t));closeTheme();toast('테마 저장됨!');
+  localStorage.setItem('tv_theme',JSON.stringify(t));
+  // Firebase에도 저장
+  if(currentUser&&fbDB) fbDB.ref('users/'+currentUser.uid+'/settings/theme').set(t);
+  closeTheme();toast('테마 저장됨!');
 }
 function resetTheme(){localStorage.removeItem('tv_theme');applyTheme(THEME_PRESETS[0]);openTheme();}
 
