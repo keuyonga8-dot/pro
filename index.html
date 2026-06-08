@@ -103,8 +103,8 @@ header{grid-column:1/-1;display:flex;align-items:center;padding:0 14px;gap:6px;b
 .ovsub{font-size:10px;color:rgba(255,255,255,.75);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;font-family:'Noto Sans KR',sans-serif;}
 
 /* 비율 */
-body.card-vertical .ovcard{aspect-ratio:3/4;}
-body.card-horizontal .ovcard{aspect-ratio:16/9;}
+body.card-vertical .ovcard{aspect-ratio:3/4 !important;}
+body.card-horizontal .ovcard{aspect-ratio:16/9 !important;}
 body.card-horizontal .group-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr));}
 
 /* 틀 스타일 */
@@ -121,8 +121,8 @@ body.frame-polaroid .ovcard{
   border-radius:3px;
   overflow:hidden;
 }
-body.frame-polaroid.card-vertical .ovcard{aspect-ratio:3/4;}
-body.frame-polaroid.card-horizontal .ovcard{aspect-ratio:16/9;}
+body.frame-polaroid.card-vertical .ovcard{aspect-ratio:3/4 !important;}
+body.frame-polaroid.card-horizontal .ovcard{aspect-ratio:16/9 !important;}
 body.frame-polaroid .ovthumb{
   position:absolute;
   top:8px;left:8px;right:8px;
@@ -403,7 +403,7 @@ body.viewer.hide-style [data-tab="style"]{display:none !important;}
       <button class="htab" data-tab="style" onclick="switchTab('style')" ondblclick="editTabName('style',this)"><span id="tlab-style">베이스프롬</span></button>
     </div>
     <div class="hright">
-      <span class="vbadge">v54</span>
+      <span class="vbadge">v55</span>
       <button class="hbtn vonly" onclick="openTheme()">🎨</button>
       <button class="hbtn vonly" onclick="openCardStyle()">⊞</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
@@ -743,20 +743,18 @@ function initImgPosDrag(){
   const el=document.getElementById('imgpos-preview');
   if(!el||el._dragInited)return;
   el._dragInited=true;
-  let dragging=false;
-  el.addEventListener('mousedown',e=>{
-    dragging=true;e.preventDefault();
-    movePos(e.clientX,e.clientY,el);
-  });
-  el.addEventListener('mousemove',e=>{
-    if(!dragging)return;
-    movePos(e.clientX,e.clientY,el);
-  });
-  el.addEventListener('mouseup',()=>{dragging=false;});
-  el.addEventListener('mouseleave',()=>{dragging=false;});
-  // 터치 지원
-  el.addEventListener('touchstart',e=>{dragging=true;e.preventDefault();movePos(e.touches[0].clientX,e.touches[0].clientY,el);},{passive:false});
-  el.addEventListener('touchmove',e=>{if(!dragging)return;e.preventDefault();movePos(e.touches[0].clientX,e.touches[0].clientY,el);},{passive:false});
+  let dragging=false,rafId=null;
+  const handle=(cx,cy)=>{
+    if(rafId)cancelAnimationFrame(rafId);
+    rafId=requestAnimationFrame(()=>{movePos(cx,cy,el);rafId=null;});
+  };
+  el.style.cursor='grab';
+  el.addEventListener('mousedown',e=>{dragging=true;e.preventDefault();el.style.cursor='grabbing';handle(e.clientX,e.clientY);});
+  el.addEventListener('mousemove',e=>{if(!dragging)return;handle(e.clientX,e.clientY);});
+  el.addEventListener('mouseup',()=>{dragging=false;el.style.cursor='grab';});
+  el.addEventListener('mouseleave',()=>{dragging=false;el.style.cursor='grab';});
+  el.addEventListener('touchstart',e=>{dragging=true;e.preventDefault();handle(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+  el.addEventListener('touchmove',e=>{if(!dragging)return;e.preventDefault();handle(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
   el.addEventListener('touchend',()=>{dragging=false;});
 }
 
@@ -772,8 +770,17 @@ function updateImgPos(){
   const img=document.getElementById('imgpos-img');
   img.style.objectFit='cover';
   img.style.objectPosition=imgPosX+'% '+imgPosY+'%';
-  img.style.transform='scale('+(imgPosSize/100)+')';
-  img.style.transformOrigin=imgPosX+'% '+imgPosY+'%';
+  // 크기 조절: width/height로 (transform 안 씀 → 깨짐 없음)
+  if(imgPosSize>100){
+    img.style.width=imgPosSize+'%';
+    img.style.height=imgPosSize+'%';
+    img.style.maxWidth='none';
+  } else {
+    img.style.width='100%';
+    img.style.height='100%';
+    img.style.maxWidth='';
+  }
+  img.style.transform='';
 }
 function saveImgPos(){
   const cat=(cache[tab]||[]).find(c=>c.id===imgPosCatId);if(!cat)return;
@@ -919,7 +926,8 @@ function ovCardHtml(cat){
   const g=cat.gallery||[];
   const pos=cat.imgPos||{x:50,y:50,size:100};
   const sz=(pos.size||100)/100;
-  const ps=`object-fit:cover;object-position:${pos.x}% ${pos.y}%;transform:scale(${sz});transform-origin:${pos.x}% ${pos.y}%`;
+  const pw=sz>1?Math.round(sz*100)+'%':'100%';
+  const ps=`object-fit:cover;object-position:${pos.x}% ${pos.y}%;width:${pw};height:${pw};max-width:none;`;
   let thumb='';
   if(cat.avatar) thumb=`<img src="${cat.avatar}" alt="" style="${ps}">`;
   else if(g.length>=4) thumb=`<div class="ovstrip">${g.slice(0,4).map(s=>`<img src="${s}" alt="">`).join('')}</div>`;
@@ -972,7 +980,7 @@ function renderDetail(id){
     <div class="sumchips">${allTags.map(t=>`<span class="schap" onclick="cpTag('${esc(t)}')">${esc(t)}</span>`).join('')}</div>
   </div>`:'';
 
-  const pairHtml=tab==='artist'?`<div class="pairsec">
+  const pairHtml=(tab==='artist'&&(!IS_VIEW||pair.length))?`<div class="pairsec">
     <div class="pairhead"><div class="pairtitle">💘 Pair</div>
       ${IS_VIEW?'':`<button class="scpbtn" onclick="openPairModal('${cat.id}')" style="font-size:10px;padding:4px 10px">+ 추가</button>`}
     </div>
@@ -997,7 +1005,8 @@ function renderDetail(id){
       ${gallery.map((src,gi)=>{
         const gpos=(cat.galPos&&cat.galPos[gi])||{x:50,y:50,size:100};
         const gsz=gpos.size/100;
-        const gst=`object-fit:cover;object-position:${gpos.x}% ${gpos.y}%;transform:scale(${gsz});transform-origin:${gpos.x}% ${gpos.y}%`;
+        const gpw=gsz>1?Math.round(gsz*100)+'%':'100%';
+        const gst=`object-fit:cover;object-position:${gpos.x}% ${gpos.y}%;width:${gpw};height:${gpw};max-width:none;`;
         return `<div class="gimgwrap" data-gi="${gi}" onclick="openLbox('${src.replace(/'/g,"\\'")}')">
           <img src="${src}" alt="" style="${gst}">
           ${IS_VIEW?'':`<button class="gimgdel" onclick="event.stopPropagation();delGalImg('${cat.id}',${gi})">✕</button>
@@ -1204,7 +1213,13 @@ function editGroupTitle(gi,btn){
   inp.addEventListener('blur',done);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape'){inp.value=cur;inp.blur();}});
 }
 function openGroupModal(){
-  const groups=getGroups();const cats=cache[tab]||[];
+  // 삭제된 그룹 ID 정리
+  const groups=getGroups();
+  const validIds=new Set(groups.map(g=>g.id));
+  let dirty=false;
+  (cache[tab]||[]).forEach(c=>{if(c.groupId&&!validIds.has(c.groupId)){delete c.groupId;dirty=true;}});
+  if(dirty)saveDB();
+  const cats=cache[tab]||[];
   document.getElementById('group-manage-list').innerHTML=cats.map(cat=>{
     const opts=`<option value="">없음</option>`+groups.map(g=>`<option value="${g.id}" ${cat.groupId===g.id?'selected':''}>${esc(g.name)}</option>`).join('');
     return `<div style="display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--bg);border-radius:8px;border:1px solid var(--border)"><div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--sky),var(--pink));display:flex;align-items:center;justify-content:center;font-size:13px;overflow:hidden;flex-shrink:0">${cat.avatar?`<img src="${cat.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:(cat.emoji||'🏷️')}</div><span style="flex:1;font-size:12px;font-weight:600">${esc(cat.name)}</span><select data-catid="${cat.id}" style="font-size:11px;border:1px solid var(--border);border-radius:6px;padding:3px 6px;background:var(--bg);font-family:inherit;color:var(--text);outline:none">${opts}</select></div>`;
