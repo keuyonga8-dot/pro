@@ -90,39 +90,63 @@ header{grid-column:1/-1;display:flex;align-items:center;padding:0 14px;gap:6px;b
 .add-group-btn:hover{border-color:var(--sky2);color:var(--cs);background:rgba(196,224,255,.1);}
 
 
+
+
+
+
+
+
+
+
+
+
 /* ── POLAROID ── */
-body.frame-polaroid .ovcard{
-  background:var(--white) !important;
-  border:2px solid #e8e0d0 !important;
-  box-shadow:3px 4px 14px rgba(0,0,0,.18) !important;
-  border-radius:3px !important;
-  aspect-ratio:unset !important;
-  padding:8px 8px 42px !important;
-  overflow:visible !important;
-  display:flex;flex-direction:column;
+body.frame-polaroid .ovcard {
+  background: var(--white) !important;
+  border: 1.5px solid #ddd !important;
+  box-shadow: 2px 4px 14px rgba(0,0,0,.15) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  aspect-ratio: unset !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
-body.frame-polaroid .ovthumb{
-  position:relative !important;
-  inset:unset !important;
-  width:100%;
-  aspect-ratio:1/1;
-  flex-shrink:0;
-  border-radius:1px;
-  overflow:hidden;
+body.frame-polaroid.card-vertical .ovcard  { aspect-ratio: unset !important; }
+body.frame-polaroid.card-horizontal .ovcard { aspect-ratio: unset !important; }
+
+body.frame-polaroid .ovthumb {
+  position: relative !important;
+  inset: unset !important;
+  width: 100% !important;
+  aspect-ratio: 1 / 1;
+  overflow: hidden !important;
+  flex-shrink: 0;
+  border-radius: 0 !important;
 }
-body.frame-polaroid.card-horizontal .ovthumb{aspect-ratio:16/9;}
-body.frame-polaroid .ovthumb img{position:absolute !important;inset:0 !important;width:100% !important;height:100% !important;}
-body.frame-polaroid .ovinfo{
-  position:absolute !important;
-  bottom:0;left:0;right:0;
-  height:42px;
-  padding:8px 12px;
-  background:var(--white) !important;
-  display:flex;flex-direction:column;justify-content:center;
+body.frame-polaroid.card-horizontal .ovthumb { aspect-ratio: 16/9 !important; }
+body.frame-polaroid .ovthumb img {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
 }
-body.frame-polaroid .ovname{color:var(--text) !important;font-size:12px;font-weight:700;text-shadow:none !important;}
-body.frame-polaroid .ovsub{color:var(--muted) !important;}
-body.frame-polaroid .card-imgpos-btn{top:6px;right:6px;}
+body.frame-polaroid .ovinfo {
+  position: static !important;
+  background: var(--white) !important;
+  padding: 10px 12px 12px !important;
+  height: auto !important;
+  min-height: 38px;
+}
+body.frame-polaroid .ovname {
+  color: var(--text) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-shadow: none !important;
+}
+body.frame-polaroid .ovsub {
+  color: var(--muted) !important;
+}
 /* ── CARD STYLES ── */
 /* 기본: 오버레이 스타일 */
 .ovcard{border-radius:14px;overflow:hidden;cursor:pointer;transition:box-shadow .2s,transform .2s;position:relative;aspect-ratio:3/4;background:linear-gradient(135deg,var(--sky),var(--pink));}
@@ -148,31 +172,13 @@ body.frame-shadow .ovcard{box-shadow:0 8px 24px rgba(0,0,0,.25);}
 body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rgba(0,0,0,.15);}
 
 
-body.frame-polaroid .ovcard{
-  background:var(--white);
-  border:1px solid #ddd;
-  box-shadow:2px 4px 16px rgba(0,0,0,.15);
-  border-radius:3px;
-  overflow:hidden;
-}
-body.frame-polaroid.card-vertical .ovcard{aspect-ratio:3/4 !important;}
-body.frame-polaroid.card-horizontal .ovcard{aspect-ratio:16/9 !important;}
-body.frame-polaroid .ovthumb{
-  position:absolute;
-  top:8px;left:8px;right:8px;
-  bottom:44px;
-  border-radius:1px;
-  overflow:hidden;
-}
-body.frame-polaroid .ovinfo{
-  position:absolute;
-  bottom:0;left:0;right:0;
-  height:44px;
-  padding:8px 12px;
-  background:var(--white);
-}
-body.frame-polaroid .ovname{color:var(--text);font-size:12px;text-shadow:none;}
-body.frame-polaroid .ovsub{color:var(--muted);}
+
+
+
+
+
+
+
 
 /* MOBILE */
 @media(max-width:768px){
@@ -437,7 +443,7 @@ body.viewer.hide-style [data-tab="style"]{display:none !important;}
       <button class="htab" data-tab="style" onclick="switchTab('style')" ondblclick="editTabName('style',this)"><span id="tlab-style">베이스프롬</span></button>
     </div>
     <div class="hright">
-      <span class="vbadge">v56</span>
+      <span class="vbadge">v57</span>
       <button class="hbtn vonly" onclick="openTheme()">🎨</button>
       <button class="hbtn vonly" onclick="openCardStyle()">⊞</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
