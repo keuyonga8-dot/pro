@@ -485,6 +485,40 @@ body.viewer.showpair .pairsec { display:block !important; }
 /* 미배정 카테고리 */
 .ungrouped-section { margin-bottom:20px; }
 .ungrouped-label { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--dim); margin-bottom:8px; padding-left:2px; }
+
+/* ━━ THEME PICKER ━━ */
+.theme-popup {
+  position:fixed; inset:0; z-index:9998;
+  background:rgba(210,200,230,.35); backdrop-filter:blur(8px);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.theme-popup.on { opacity:1; pointer-events:all; }
+.theme-box {
+  background:var(--white); border-radius:18px;
+  padding:24px; width:460px; max-width:92vw;
+  border:1px solid var(--border);
+  box-shadow:0 16px 48px rgba(150,130,190,.2);
+  display:flex; flex-direction:column; gap:16px;
+}
+.theme-title { font-size:15px; font-weight:700; display:flex; align-items:center; gap:8px; }
+.theme-close { margin-left:auto; background:none; border:none; font-size:20px; color:var(--dim); cursor:pointer; }
+.theme-presets { display:flex; gap:8px; flex-wrap:wrap; }
+.theme-preset {
+  width:36px; height:36px; border-radius:50%; cursor:pointer;
+  border:2px solid transparent; transition:all .15s;
+  flex-shrink:0;
+}
+.theme-preset:hover { transform:scale(1.15); }
+.theme-preset.on { border-color:var(--text); transform:scale(1.1); }
+.theme-divider { height:1px; background:var(--border); }
+.theme-custom-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.theme-field { display:flex; flex-direction:column; gap:5px; }
+.theme-field label { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.7px; }
+.theme-field-row { display:flex; align-items:center; gap:8px; }
+.theme-swatch { width:28px; height:28px; border-radius:7px; border:1px solid var(--border); cursor:pointer; flex-shrink:0; }
+.theme-hex { font-family:'DM Mono',monospace; font-size:12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:4px 8px; width:90px; outline:none; color:var(--text); }
+.theme-hex:focus { border-color:var(--sky2); }
 </style>
 </head>
 <body>
@@ -516,9 +550,10 @@ body.viewer.showpair .pairsec { display:block !important; }
       </button>
     </div>
     <div class="hright">
-      <span class="vbadge">v32</span>
+      <span class="vbadge">v33</span>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">🔗 공유 설정</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none;border-color:rgba(248,204,228,.6);color:var(--cp)" title="베이스프롬 공유 on/off">베이스프롬 공유 ●</button>
+      <button class="hbtn" id="themebtn" onclick="openTheme()">🎨 테마</button>
       <button class="hbtn" id="groupbtn" onclick="openGroupModal()" style="display:none">📁 그룹 관리</button>
       <button class="hbtn" id="addbtn" onclick="openAddCat()" style="display:none">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
@@ -645,6 +680,59 @@ body.viewer.showpair .pairsec { display:block !important; }
     <div class="mfoot">
       <button class="cancelbtn" onclick="closeGroupModal()">닫기</button>
       <button class="savebtn" onclick="saveGroupManage()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- THEME POPUP -->
+<div class="theme-popup" id="themepopup" onmousedown="if(event.target===this)closeTheme()">
+  <div class="theme-box" onmousedown="event.stopPropagation()">
+    <div class="theme-title">🎨 테마 색상 <button class="theme-close" onclick="closeTheme()">×</button></div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px">프리셋</div>
+      <div class="theme-presets" id="theme-presets"></div>
+    </div>
+    <div class="theme-divider"></div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px">커스텀</div>
+      <div class="theme-custom-grid">
+        <div class="theme-field">
+          <label>배경</label>
+          <div class="theme-field-row">
+            <div class="theme-swatch" id="tsw-bg" onclick="document.getElementById('tpk-bg').click()"></div>
+            <input type="color" id="tpk-bg" style="display:none" oninput="onThemePick('bg',this.value)">
+            <input class="theme-hex" id="thx-bg" maxlength="7" oninput="onThemeHex('bg',this.value)">
+          </div>
+        </div>
+        <div class="theme-field">
+          <label>하늘 포인트</label>
+          <div class="theme-field-row">
+            <div class="theme-swatch" id="tsw-sky2" onclick="document.getElementById('tpk-sky2').click()"></div>
+            <input type="color" id="tpk-sky2" style="display:none" oninput="onThemePick('sky2',this.value)">
+            <input class="theme-hex" id="thx-sky2" maxlength="7" oninput="onThemeHex('sky2',this.value)">
+          </div>
+        </div>
+        <div class="theme-field">
+          <label>핑크 포인트</label>
+          <div class="theme-field-row">
+            <div class="theme-swatch" id="tsw-pink2" onclick="document.getElementById('tpk-pink2').click()"></div>
+            <input type="color" id="tpk-pink2" style="display:none" oninput="onThemePick('pink2',this.value)">
+            <input class="theme-hex" id="thx-pink2" maxlength="7" oninput="onThemeHex('pink2',this.value)">
+          </div>
+        </div>
+        <div class="theme-field">
+          <label>텍스트 포인트</label>
+          <div class="theme-field-row">
+            <div class="theme-swatch" id="tsw-cs" onclick="document.getElementById('tpk-cs').click()"></div>
+            <input type="color" id="tpk-cs" style="display:none" oninput="onThemePick('cs',this.value)">
+            <input class="theme-hex" id="thx-cs" maxlength="7" oninput="onThemeHex('cs',this.value)">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="cancelbtn" onclick="resetTheme()">초기화</button>
+      <button class="savebtn" onclick="saveTheme()">저장</button>
     </div>
   </div>
 </div>
@@ -960,83 +1048,57 @@ function renderOverview() {
   const groups = getGroups();
   let html = '';
 
-  // 그룹별 렌더
+  // 그룹별 렌더 — 그룹명 + 아래 카드 그리드
   groups.forEach((g, gi) => {
-    const grouped = cats.filter(c => (c.groupId === g.id));
+    const grouped = cats.filter(c => c.groupId === g.id);
     if (!grouped.length) return;
-    const cards = grouped.map(cat => gcardHtml(cat)).join('');
+    const cards = grouped.map(cat => ovCardHtml(cat)).join('');
     html += `<div class="group-section">
       <div class="group-header">
-        <button class="group-title" ondblclick="editGroupTitle(${gi},this)" title="더블클릭으로 이름 변경">${esc(g.name)}</button>
+        <button class="group-title" ondblclick="editGroupTitle(${gi},this)">${esc(g.name)}</button>
         <span class="group-count">${grouped.length}</span>
         <div class="group-actions">
-          <button class="group-act-btn" onclick="moveGroup(${gi},-1)" title="위로">↑</button>
-          <button class="group-act-btn" onclick="moveGroup(${gi},1)" title="아래로">↓</button>
-          <button class="group-act-btn" onclick="deleteGroup(${gi})" title="그룹 삭제">✕</button>
+          <button class="group-act-btn" onclick="moveGroup(${gi},-1)">↑</button>
+          <button class="group-act-btn" onclick="moveGroup(${gi},1)">↓</button>
+          <button class="group-act-btn" onclick="deleteGroup(${gi})">✕</button>
         </div>
       </div>
-      <div class="group-scroll-wrap">
-        <div class="group-cards">${cards}</div>
-      </div>
+      <div class="group-grid">${cards}</div>
     </div>`;
   });
 
-  // 미배정 카테고리
+  // 미배정
   const groupIds = groups.map(g => g.id);
   const ungrouped = cats.filter(c => !c.groupId || !groupIds.includes(c.groupId));
   if (ungrouped.length) {
-    const cards = ungrouped.map(cat => gcardHtml(cat)).join('');
+    const cards = ungrouped.map(cat => ovCardHtml(cat)).join('');
     html += `<div class="ungrouped-section">
       ${groups.length ? '<div class="ungrouped-label">미배정</div>' : ''}
-      <div class="group-scroll-wrap"><div class="group-cards">${cards}</div></div>
+      <div class="group-grid">${cards}</div>
     </div>`;
   }
 
   html += `<button class="add-group-btn" onclick="addGroup()">+ 그룹 추가</button>`;
-
-  // Pair 섹션 (artist 탭에서만, 전역)
-  if (tab === 'artist') {
-    const pair = cache.pair || [];
-    const ks = ['k0','k1','k2','k3','k4','k5'];
-    const pairCards = pair.map((p,pi) => `
-      <div class="paircard">
-        <div class="pairav">${p.avatar?`<img src="${p.avatar}" alt="">`:(p.emoji||'💘')}</div>
-        <div class="pairbody">
-          <div class="pairname">${esc(p.name)}</div>
-          <div class="pairtags">${(p.tags||[]).map((t,i)=>`<span class="chip ${ks[i%6]}" onclick="cpTag('${esc(t)}')">${esc(t)}</span>`).join('')}</div>
-        </div>
-        <div class="pairacts">
-          <button class="copybtn" onclick="cpPair(${pi})">복사</button>
-          <button class="delbtn" onclick="delPair(${pi})">✕</button>
-        </div>
-      </div>`).join('');
-    html += `<div class="pairsec" style="margin-top:8px">
-      <div class="pairhead">
-        <div class="pairtitle">💘 Pair</div>
-        <button class="scpbtn" onclick="openPairModal()" style="font-size:10px;padding:4px 10px">+ 추가</button>
-      </div>
-      ${!pair.length ? '<div class="pairempty">Pair를 추가해보세요</div>' : pairCards}
-    </div>`;
-  }
-
   grid.innerHTML = html;
 }
 
-function gcardHtml(cat) {
+function ovCardHtml(cat) {
   const g = cat.gallery || [];
   let thumb = cat.avatar
     ? `<img src="${cat.avatar}" alt="">`
     : g.length >= 4
-      ? `<div class="ovstrip" style="position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:1px">${g.slice(0,4).map(s=>`<img src="${s}" alt="" style="width:100%;height:100%;object-fit:cover">`).join('')}</div>`
+      ? `<div class="ovstrip">${g.slice(0,4).map(s=>`<img src="${s}" alt="">`).join('')}</div>`
       : g.length ? `<img src="${g[0]}" alt="">` : (cat.emoji || '🏷️');
-  return `<div class="gcard" onclick="selectCat('${cat.id}')">
-    <div class="gcard-thumb" style="position:relative">${thumb}</div>
-    <div class="gcard-info">
-      <div class="gcard-name">${esc(cat.name)}</div>
-      ${cat.tag ? `<div class="gcard-sub">${esc(cat.tag)}</div>` : ''}
+  return `<div class="ovcard" onclick="selectCat('${cat.id}')">
+    <div class="ovthumb">${thumb}</div>
+    <div class="ovinfo">
+      <div class="ovname">${esc(cat.name)}</div>
+      ${cat.tag ? `<div class="ovsub">${esc(cat.tag)}</div>` : ''}
     </div>
   </div>`;
 }
+
+
 
 // ── DETAIL ──
 function selectCat(id) {
@@ -1084,7 +1146,7 @@ function renderDetail(id) {
     <div class="sumchips">${allTags.map(t=>`<span class="schap" onclick="cpTag('${esc(t)}')">${esc(t)}</span>`).join('')}</div>
   </div>`:'';
 
-  const pairHtml='';
+  const pairHtml = tab==='artist' ? buildPairHtml(cat.id) : '';
 
   const galHtml=`<div class="cgal-section">
     <div class="cgal-label">🖼️ 갤러리</div>
@@ -1202,18 +1264,26 @@ function saveEntry(){
 function delEntry(catId,idx){ if(IS_VIEW||!confirm('삭제할까요?')) return; const cat=(cache[tab]||[]).find(c=>c.id===catId); if(!cat) return; cat.entries.splice(idx,1); const key=catId+'_'+idx; selEntries.delete(key); updateMbar(); saveDB(); renderDetail(catId); }
 
 // ── PAIR MODAL ──
-function openPairModal(){ if(IS_VIEW) return; pendingPairAv=null; document.getElementById('pairname').value=''; document.getElementById('pairemoji').value='💘'; document.getElementById('pairtags').value=''; document.getElementById('pairpavprev').innerHTML='💘'; document.getElementById('pairpavinput').value=''; document.getElementById('pairmodal').classList.add('on'); }
+let pairTargetCatId = null;
+function openPairModal(catId){ if(IS_VIEW) return; pairTargetCatId = catId || null; pendingPairAv=null; document.getElementById('pairname').value=''; document.getElementById('pairemoji').value='💘'; document.getElementById('pairtags').value=''; document.getElementById('pairpavprev').innerHTML='💘'; document.getElementById('pairpavinput').value=''; document.getElementById('pairmodal').classList.add('on'); }
 function closePairModal(){ document.getElementById('pairmodal').classList.remove('on'); }
 function savePair(){
   if(IS_VIEW) return;
   const name=document.getElementById('pairname').value.trim(); if(!name) return alert('이름을 입력하세요.');
   const emoji=document.getElementById('pairemoji').value.trim()||'💘';
   const tags=document.getElementById('pairtags').value.split(/[\n,]+/).map(t=>t.trim()).filter(Boolean);
-  if(!cache.pair) cache.pair=[];
-  cache.pair.push({name,emoji,avatar:pendingPairAv||'',tags});
+  if (pairTargetCatId) {
+    const cat=(cache[tab]||[]).find(c=>c.id===pairTargetCatId);
+    if (cat) { if(!cat.pair) cat.pair=[]; cat.pair.push({name,emoji,avatar:pendingPairAv||'',tags}); }
+  } else {
+    if(!cache.pair) cache.pair=[];
+    cache.pair.push({name,emoji,avatar:pendingPairAv||'',tags});
+  }
   saveDB(); closePairModal(); if(selId) renderDetail(selId);
 }
 function delPair(pi){ if(IS_VIEW||!confirm('삭제할까요?')) return; cache.pair.splice(pi,1); saveDB(); if(selId) renderDetail(selId); }
+function delPairCat(catId,pi){ if(IS_VIEW||!confirm('삭제할까요?')) return; const cat=(cache[tab]||[]).find(c=>c.id===catId); if(!cat) return; cat.pair.splice(pi,1); saveDB(); renderDetail(catId); }
+function cpPairCat(catId,pi){ const cat=(cache[tab]||[]).find(c=>c.id===catId); if(!cat) return; const p=(cat.pair||[])[pi]; if(!p) return; cpText((p.tags||[]).join(', '),`💘 ${p.name} 복사됨`); }
 
 // ── UTILS ──
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
@@ -1449,6 +1519,114 @@ function updateStyleShareBtn(shared) {
 }
 
 
+
+function buildPairHtml(catId) {
+  const cat = (cache[tab]||[]).find(c=>c.id===catId);
+  if (!cat) return '';
+  const pair = cat.pair || [];
+  const ks = ['k0','k1','k2','k3','k4','k5'];
+  return `<div class="pairsec">
+    <div class="pairhead">
+      <div class="pairtitle">💘 Pair</div>
+      <button class="scpbtn" onclick="openPairModal('${catId}')" style="font-size:10px;padding:4px 10px">+ 추가</button>
+    </div>
+    ${!pair.length ? '<div class="pairempty">Pair를 추가해보세요</div>' :
+      pair.map((p,pi) => `
+        <div class="paircard">
+          <div class="pairav">${p.avatar?`<img src="${p.avatar}" alt="">`:(p.emoji||'💘')}</div>
+          <div class="pairbody">
+            <div class="pairname">${esc(p.name)}</div>
+            <div class="pairtags">${(p.tags||[]).map((t,i)=>`<span class="chip ${ks[i%6]}" onclick="cpTag('${esc(t)}')">${esc(t)}</span>`).join('')}</div>
+          </div>
+          <div class="pairacts">
+            <button class="copybtn" onclick="cpPairCat('${catId}',${pi})">복사</button>
+            <button class="delbtn" onclick="delPairCat('${catId}',${pi})">✕</button>
+          </div>
+        </div>`).join('')}
+  </div>`;
+}
+
+/* ── THEME ── */
+const THEME_PRESETS = [
+  { name:'기본', bg:'#f4f0f8', sky:'#e0f0ff', sky2:'#c4e0ff', pink:'#fde8f3', pink2:'#f8cce4', border:'#e4ddf0', cs:'#5a96c4', cp:'#c05888' },
+  { name:'라벤더', bg:'#f0eeff', sky:'#e8e0ff', sky2:'#c8b8ff', pink:'#ffe0f8', pink2:'#f0b8e8', border:'#ddd0f0', cs:'#7858c8', cp:'#c058a8' },
+  { name:'민트', bg:'#eef8f4', sky:'#d0f0e8', sky2:'#a0e0d0', pink:'#e0f8e8', pink2:'#b8ecd0', border:'#c8e8d8', cs:'#38a880', cp:'#38a860' },
+  { name:'피치', bg:'#fff4f0', sky:'#ffe8d8', sky2:'#ffc8a8', pink:'#fff0e8', pink2:'#ffd8c0', border:'#f0d8c8', cs:'#c87040', cp:'#c85040' },
+  { name:'다크', bg:'#1e1e2a', sky:'#2a2a40', sky2:'#3a3a60', pink:'#2a1e30', pink2:'#4a2a50', border:'#3a3050', cs:'#8090e0', cp:'#e070a0' },
+  { name:'흑백', bg:'#f5f5f5', sky:'#e8e8e8', sky2:'#c8c8c8', pink:'#f0f0f0', pink2:'#d8d8d8', border:'#d0d0d0', cs:'#404040', cp:'#606060' },
+];
+
+const THEME_VARS = ['bg','sky','sky2','pink','pink2','border','cs','cp'];
+
+function applyTheme(t) {
+  const r = document.documentElement.style;
+  r.setProperty('--bg', t.bg||'');
+  r.setProperty('--sky', t.sky||'');
+  r.setProperty('--sky2', t.sky2||'');
+  r.setProperty('--pink', t.pink||'');
+  r.setProperty('--pink2', t.pink2||'');
+  r.setProperty('--border', t.border||'');
+  r.setProperty('--cs', t.cs||'');
+  r.setProperty('--cp', t.cp||'');
+}
+
+function loadTheme() {
+  const saved = JSON.parse(localStorage.getItem('tv_theme') || 'null');
+  if (saved) applyTheme(saved);
+}
+
+function openTheme() {
+  const saved = JSON.parse(localStorage.getItem('tv_theme') || JSON.stringify(THEME_PRESETS[0]));
+  // 프리셋 버튼
+  document.getElementById('theme-presets').innerHTML = THEME_PRESETS.map((p,i) => `
+    <div class="theme-preset" style="background:linear-gradient(135deg,${p.sky2},${p.pink2})"
+      onclick="applyPreset(${i})" title="${p.name}"></div>`).join('');
+  // 현재값으로 인풋 초기화
+  ['bg','sky2','pink2','cs'].forEach(k => {
+    const val = getComputedStyle(document.documentElement).getPropertyValue('--'+k).trim() || saved[k] || '';
+    document.getElementById('tsw-'+k).style.background = val;
+    document.getElementById('tpk-'+k).value = val;
+    document.getElementById('thx-'+k).value = val;
+  });
+  document.getElementById('themepopup').classList.add('on');
+}
+
+function closeTheme() { document.getElementById('themepopup').classList.remove('on'); }
+
+function applyPreset(i) {
+  applyTheme(THEME_PRESETS[i]);
+  openTheme(); // 새 값으로 다시 열기
+}
+
+function onThemePick(key, val) {
+  document.getElementById('thx-'+key).value = val;
+  document.getElementById('tsw-'+key).style.background = val;
+  document.documentElement.style.setProperty('--'+key, val);
+}
+
+function onThemeHex(key, val) {
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+    document.getElementById('tpk-'+key).value = val;
+    document.getElementById('tsw-'+key).style.background = val;
+    document.documentElement.style.setProperty('--'+key, val);
+  }
+}
+
+function saveTheme() {
+  const t = {};
+  THEME_VARS.forEach(k => t[k] = getComputedStyle(document.documentElement).getPropertyValue('--'+k).trim());
+  localStorage.setItem('tv_theme', JSON.stringify(t));
+  closeTheme();
+  toast('테마 저장됨!');
+}
+
+function resetTheme() {
+  localStorage.removeItem('tv_theme');
+  applyTheme(THEME_PRESETS[0]);
+  openTheme();
+  toast('테마 초기화됨');
+}
+
 /* ── GROUPS ── */
 function getGroups() {
   return JSON.parse(localStorage.getItem('tv_groups_' + tab) || '[]');
@@ -1549,6 +1727,7 @@ loadFirebase();
 loadTagColors();
 loadTabNames();
 loadStyleShare();
+loadTheme();
 </script>
 </body>
 </html>
