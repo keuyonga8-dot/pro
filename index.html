@@ -482,6 +482,9 @@ body.viewer.showpair .pairsec { display:block !important; }
 }
 .add-group-btn:hover { border-color:var(--sky2); color:var(--cs); background:rgba(196,224,255,.1); }
 
+/* 그룹 그리드 */
+.group-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; margin-bottom:28px; }
+.group-section { margin-bottom:8px; }
 /* 미배정 카테고리 */
 .ungrouped-section { margin-bottom:20px; }
 .ungrouped-label { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--dim); margin-bottom:8px; padding-left:2px; }
@@ -550,7 +553,7 @@ body.viewer.showpair .pairsec { display:block !important; }
       </button>
     </div>
     <div class="hright">
-      <span class="vbadge">v33</span>
+      <span class="vbadge">v34</span>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">🔗 공유 설정</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none;border-color:rgba(248,204,228,.6);color:var(--cp)" title="베이스프롬 공유 on/off">베이스프롬 공유 ●</button>
       <button class="hbtn" id="themebtn" onclick="openTheme()">🎨 테마</button>
