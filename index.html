@@ -81,8 +81,7 @@ header{grid-column:1/-1;display:flex;align-items:center;padding:0 14px;gap:6px;b
 .group-title{font-size:14px;font-weight:700;color:var(--text);cursor:pointer;outline:none;background:none;border:none;font-family:inherit;padding:0;}
 .group-title:hover{color:var(--cs);}
 .group-title-input{font-size:14px;font-weight:700;color:var(--text);background:none;border:none;border-bottom:2px solid var(--sky2);outline:none;font-family:inherit;width:160px;padding:0;}
-.group-actions{margin-left:auto;display:flex;gap:2px;opacity:0;transition:opacity .15s;}
-.group-header:hover .group-actions{opacity:1;}
+.group-actions{margin-left:auto;display:flex;gap:2px;}
 .group-act-btn{background:none;border:none;cursor:pointer;font-size:13px;color:var(--dim);padding:3px 6px;border-radius:6px;transition:all .12s;}
 .group-act-btn:hover{background:var(--bg);color:var(--text);}
 .group-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:4px;}
@@ -347,7 +346,7 @@ body.frame-polaroid .ovsub{color:var(--muted);}
 .style-btn{padding:6px 14px;border-radius:8px;border:1.5px solid var(--border);background:var(--bg);font-family:inherit;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .14s;}
 .style-btn:hover{border-color:var(--sky2);color:var(--cs);}
 .style-btn.on{border-color:var(--sky2);color:var(--cs);background:rgba(196,224,255,.15);}
-.imgpos-preview{width:100%;height:200px;border-radius:10px;overflow:hidden;position:relative;background:linear-gradient(135deg,var(--sky),var(--pink));cursor:crosshair;}
+.imgpos-preview{width:100%;height:200px;border-radius:10px;overflow:hidden;position:relative;background:linear-gradient(135deg,var(--sky),var(--pink));cursor:grab;user-select:none;}
 .imgpos-preview img{width:100%;height:100%;object-fit:cover;display:block;}
 .size-row{display:flex;align-items:center;gap:10px;}
 .size-row label{font-size:11px;color:var(--muted);font-weight:600;min-width:40px;}
@@ -376,6 +375,9 @@ body.viewer .hbtn:not(.vonly){display:none !important;}
 body.viewer.showpair .pairsec{display:block !important;}
 body.viewer.showpair .pairacts{display:none !important;}
 body.viewer.hide-style [data-tab="style"]{display:none !important;}
+
+.card-imgpos-btn{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,.85);border:none;font-size:14px;cursor:pointer;color:var(--cs);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;z-index:3;}
+.ovcard:hover .card-imgpos-btn{opacity:1;}
 </style>
 </head>
 <body>
@@ -401,7 +403,7 @@ body.viewer.hide-style [data-tab="style"]{display:none !important;}
       <button class="htab" data-tab="style" onclick="switchTab('style')" ondblclick="editTabName('style',this)"><span id="tlab-style">베이스프롬</span></button>
     </div>
     <div class="hright">
-      <span class="vbadge">v53</span>
+      <span class="vbadge">v54</span>
       <button class="hbtn vonly" onclick="openTheme()">🎨</button>
       <button class="hbtn vonly" onclick="openCardStyle()">⊞</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
@@ -578,7 +580,7 @@ body.viewer.hide-style [data-tab="style"]{display:none !important;}
 <div class="popup" id="imgpospopup" onmousedown="if(event.target===this)closeImgPos()">
   <div class="popbox" onmousedown="event.stopPropagation()">
     <div class="pop-title">🖼️ 이미지 위치/크기 <button class="pop-close" onclick="closeImgPos()">×</button></div>
-    <div class="imgpos-preview" id="imgpos-preview" onclick="setImgPosByClick(event)"><img id="imgpos-img" src="" alt=""></div>
+    <div class="imgpos-preview" id="imgpos-preview"><img id="imgpos-img" src="" alt=""></div>
     <div style="font-size:11px;color:var(--muted);text-align:center">클릭 → 위치 · 슬라이더 → 크기</div>
     <div class="size-row"><label>크기</label><input type="range" id="imgpos-size" min="100" max="200" value="100" oninput="updateImgPos()"><span id="imgpos-size-val">100%</span></div>
     <div style="display:flex;gap:8px;justify-content:flex-end"><button class="cancelbtn" onclick="closeImgPos()">취소</button><button class="savebtn" onclick="saveImgPos()">저장</button></div>
@@ -707,6 +709,23 @@ function delGalImg(catId,idx){
 }
 
 // ── IMAGE POSITION (갤러리 이미지) ──
+function openCardImgPos(catId){
+  if(IS_VIEW)return;
+  const cat=(cache[tab]||[]).find(c=>c.id===catId);if(!cat)return;
+  const g=cat.gallery||[];
+  const src=cat.avatar||(g.length?g[0]:'');
+  if(!src)return toast('이미지를 먼저 등록하세요');
+  imgPosCatId=catId;imgPosGalIdx=-1;
+  const saved=cat.imgPos||{x:50,y:50,size:100};
+  imgPosX=saved.x;imgPosY=saved.y;imgPosSize=saved.size||100;
+  document.getElementById('imgpos-img').src=src;
+  document.getElementById('imgpos-size').value=imgPosSize;
+  document.getElementById('imgpos-size-val').textContent=imgPosSize+'%';
+  updateImgPos();
+  document.getElementById('imgpospopup').classList.add('on');
+  setTimeout(initImgPosDrag,50);
+}
+
 function openGalImgPos(catId,gi){
   if(IS_VIEW)return;
   const cat=(cache[tab]||[]).find(c=>c.id===catId);if(!cat)return;
@@ -720,10 +739,31 @@ function openGalImgPos(catId,gi){
   updateImgPos();
   document.getElementById('imgpospopup').classList.add('on');
 }
-function setImgPosByClick(e){
-  const rect=e.currentTarget.getBoundingClientRect();
-  imgPosX=Math.round((e.clientX-rect.left)/rect.width*100);
-  imgPosY=Math.round((e.clientY-rect.top)/rect.height*100);
+function initImgPosDrag(){
+  const el=document.getElementById('imgpos-preview');
+  if(!el||el._dragInited)return;
+  el._dragInited=true;
+  let dragging=false;
+  el.addEventListener('mousedown',e=>{
+    dragging=true;e.preventDefault();
+    movePos(e.clientX,e.clientY,el);
+  });
+  el.addEventListener('mousemove',e=>{
+    if(!dragging)return;
+    movePos(e.clientX,e.clientY,el);
+  });
+  el.addEventListener('mouseup',()=>{dragging=false;});
+  el.addEventListener('mouseleave',()=>{dragging=false;});
+  // 터치 지원
+  el.addEventListener('touchstart',e=>{dragging=true;e.preventDefault();movePos(e.touches[0].clientX,e.touches[0].clientY,el);},{passive:false});
+  el.addEventListener('touchmove',e=>{if(!dragging)return;e.preventDefault();movePos(e.touches[0].clientX,e.touches[0].clientY,el);},{passive:false});
+  el.addEventListener('touchend',()=>{dragging=false;});
+}
+
+function movePos(cx,cy,el){
+  const rect=el.getBoundingClientRect();
+  imgPosX=Math.max(0,Math.min(100,Math.round((cx-rect.left)/rect.width*100)));
+  imgPosY=Math.max(0,Math.min(100,Math.round((cy-rect.top)/rect.height*100)));
   updateImgPos();
 }
 function updateImgPos(){
@@ -737,9 +777,15 @@ function updateImgPos(){
 }
 function saveImgPos(){
   const cat=(cache[tab]||[]).find(c=>c.id===imgPosCatId);if(!cat)return;
-  if(!cat.galPos)cat.galPos={};
-  cat.galPos[imgPosGalIdx]={x:imgPosX,y:imgPosY,size:imgPosSize};
-  saveDB();closeImgPos();renderDetail(imgPosCatId);
+  if(imgPosGalIdx>=0){
+    if(!cat.galPos)cat.galPos={};
+    cat.galPos[imgPosGalIdx]={x:imgPosX,y:imgPosY,size:imgPosSize};
+    saveDB();closeImgPos();renderDetail(imgPosCatId);
+  } else {
+    cat.imgPos={x:imgPosX,y:imgPosY,size:imgPosSize};
+    saveDB();closeImgPos();renderOverview();
+    if(selId===imgPosCatId)renderDetail(imgPosCatId);
+  }
 }
 function closeImgPos(){document.getElementById('imgpospopup').classList.remove('on');}
 
@@ -882,6 +928,7 @@ function ovCardHtml(cat){
   return `<div class="ovcard" onclick="selectCat('${cat.id}')">
     <div class="ovthumb">${thumb}</div>
     <div class="ovinfo"><div class="ovname">${esc(cat.name)}</div>${cat.tag?`<div class="ovsub">${esc(cat.tag)}</div>`:''}</div>
+    ${IS_VIEW?'':`<button class="card-imgpos-btn" onclick="event.stopPropagation();openCardImgPos('${cat.id}')" title="이미지 위치/크기 조절">⤢</button>`}
   </div>`;
 }
 
