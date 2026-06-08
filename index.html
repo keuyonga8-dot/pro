@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TagVault</title>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -467,7 +465,7 @@ body.viewer-mode.show-pair .pair-section { display:block; }
     <button class="header-tab" data-tab="style" onclick="switchTab('style')">베이스프롬</button>
   </div>
   <div class="header-right">
-    <span class="ver-badge">v19</span>
+    <span class="ver-badge">v20</span>
     <button class="btn-new-cat" id="viewerSettingsBtn" onclick="openViewerSettings()" title="뷰어 공유 설정" style="border-color:rgba(196,224,255,.6);color:var(--c-sky)">🔗 공유 설정</button>
     <button class="btn-new-cat" onclick="openAddCat()">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
@@ -643,6 +641,8 @@ body.viewer-mode.show-pair .pair-section { display:block; }
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <script>
 // ════════════════════════════════════
 // 🔥 FIREBASE 설정 — 아래 값을 본인 것으로 교체하세요
@@ -1355,8 +1355,10 @@ function copyShareLink(inputId, btnId) {
   setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('copied'); }, 2000);
 }
 
-initFirebase();   // Firebase 연결 + 실시간 리스닝 시작
-initViewerMode(); // 뷰어 모드 처리
+window.addEventListener('load', function() {
+  initFirebase();   // Firebase 연결 + 실시간 리스닝 시작
+  initViewerMode(); // 뷰어 모드 처리
+});
 </script>
 </body>
 </html>
