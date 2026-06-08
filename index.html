@@ -60,7 +60,7 @@ header { grid-column:1/-1; display:flex; align-items:center; padding:0 22px; gap
 .hbtn { display:flex; align-items:center; gap:5px; padding:6px 13px; border-radius:8px; border:1.5px solid var(--border); background:var(--white); font-family:inherit; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; transition:all .14s; }
 .hbtn:hover { border-color:var(--sky2); color:var(--cs); }
 .userav { width:30px; height:30px; border-radius:50%; object-fit:cover; border:2px solid var(--border); cursor:pointer; }
-.usermenu { position:relative; }
+.usermenu { display:none; }
 .userdrop { position:absolute; right:0; top:38px; background:var(--white); border:1px solid var(--border); border-radius:10px; padding:6px; min-width:160px; box-shadow:0 8px 24px rgba(160,140,200,.18); display:none; z-index:100; }
 .userdrop.on { display:block; }
 .uditem { padding:8px 12px; border-radius:7px; font-size:12px; cursor:pointer; color:var(--text); }
@@ -93,7 +93,7 @@ header { grid-column:1/-1; display:flex; align-items:center; padding:0 22px; gap
 .catname { font-size:12.5px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .catbtn.on .catname { color:var(--cs); }
 .catsub { font-size:10px; color:var(--dim); font-family:'DM Mono',monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; }
-.catn { font-size:10px; font-weight:700; color:var(--dim); font-family:'DM Mono',monospace; background:var(--bg); border:1px solid var(--border); border-radius:20px; padding:1px 6px; flex-shrink:0; }
+.catn { display:none; }
 .catbtn.on .catn { color:var(--cs); border-color:rgba(196,224,255,.6); background:rgba(196,224,255,.15); }
 .sbfoot { padding:8px 12px; border-top:1px solid var(--border); font-size:10px; color:var(--dim); font-family:'DM Mono',monospace; flex-shrink:0; }
 
@@ -309,19 +309,13 @@ body.viewer.showpair .pairsec { display:block !important; }
       <button class="htab" data-tab="style" onclick="switchTab('style')">베이스프롬</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v23</span>
+      <span class="vbadge">v24</span>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">🔗 공유 설정</button>
       <button class="hbtn" id="addbtn" onclick="openAddCat()" style="display:none">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
         카테고리 추가
       </button>
-      <div class="usermenu">
-        <img class="userav" id="userav" src="" alt="" onclick="toggleUserMenu()">
-        <div class="userdrop" id="userdrop">
-          <div class="udname" id="udname"></div>
-          <div class="uditem" onclick="signOut()">로그아웃</div>
-        </div>
-      </div>
+      <button class="hbtn" id="signoutbtn" onclick="signOut()" style="display:none">로그아웃</button>
     </div>
   </header>
 
@@ -515,10 +509,9 @@ function onAuthChange(user) {
     targetUID = user.uid;
     document.getElementById('loginscreen').style.display = 'none';
     document.getElementById('app').classList.add('on');
-    document.getElementById('userav').src = user.photoURL || '';
-    document.getElementById('udname').textContent = user.displayName || user.email;
     document.getElementById('sharebtn').style.display = 'flex';
     document.getElementById('addbtn').style.display = 'flex';
+    document.getElementById('signoutbtn').style.display = 'flex';
     listenData(user.uid);
   } else {
     document.getElementById('loginscreen').style.display = 'flex';
@@ -536,12 +529,7 @@ function signOut() {
   toggleUserMenu();
 }
 
-function toggleUserMenu() {
-  document.getElementById('userdrop').classList.toggle('on');
-}
-document.addEventListener('click', e => {
-  if (!e.target.closest('.usermenu')) document.getElementById('userdrop')?.classList.remove('on');
-});
+
 
 // ── DATABASE ──
 let dbListener = null;
@@ -681,7 +669,7 @@ function renderSidebar() {
         <div class="catname">${esc(cat.name)}</div>
         ${cat.tag?`<div class="catsub">${esc(cat.tag)}</div>`:''}
       </div>
-      <div class="catn">${(cat.entries||[]).length}</div>
+
     </button>`).join('');
 }
 
