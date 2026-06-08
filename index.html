@@ -47,7 +47,7 @@ body { font-family:'Noto Sans KR',sans-serif; background:var(--bg); color:var(--
 .app.on { display:grid; }
 
 /* HEADER */
-header { grid-column:1/-1; display:flex; align-items:center; padding:0 22px; gap:14px; background:var(--white); border-bottom:1px solid var(--border); }
+header { grid-column:1/-1; display:flex; align-items:center; padding:0 14px; gap:6px; background:var(--white); border-bottom:1px solid var(--border); overflow:hidden; flex-wrap:nowrap; }
 .logo { font-size:15px; font-weight:700; display:flex; align-items:center; gap:7px; flex-shrink:0; }
 .logo-dot { width:7px; height:7px; border-radius:50%; background:linear-gradient(135deg,var(--sky2),var(--pink2)); }
 .hdiv { width:1px; height:18px; background:var(--border); }
@@ -57,7 +57,7 @@ header { grid-column:1/-1; display:flex; align-items:center; padding:0 22px; gap
 .htab.on { background:linear-gradient(120deg,rgba(196,224,255,.35),rgba(248,204,228,.35)); color:var(--text); font-weight:700; }
 .hright { margin-left:auto; display:flex; align-items:center; gap:8px; }
 .vbadge { font-family:'DM Mono',monospace; font-size:10px; color:var(--dim); background:var(--bg); border:1px solid var(--border); border-radius:20px; padding:2px 8px; }
-.hbtn { display:flex; align-items:center; gap:5px; padding:6px 13px; border-radius:8px; border:1.5px solid var(--border); background:var(--white); font-family:inherit; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; transition:all .14s; }
+.hbtn { display:flex; align-items:center; gap:4px; padding:5px 9px; border-radius:8px; border:1.5px solid var(--border); background:var(--white); font-family:inherit; font-size:11px; font-weight:600; color:var(--muted); cursor:pointer; transition:all .14s; white-space:nowrap; }
 .hbtn:hover { border-color:var(--sky2); color:var(--cs); }
 .userav { width:30px; height:30px; border-radius:50%; object-fit:cover; border:2px solid var(--border); cursor:pointer; }
 .usermenu { display:none; }
@@ -643,12 +643,12 @@ body.frame-polaroid .ovsub { color:var(--muted); }
       </button>
     </div>
     <div class="hright">
-      <span class="vbadge">v44</span>
-      <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">🔗 공유 설정</button>
-      <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none;border-color:rgba(248,204,228,.6);color:var(--cp)" title="베이스프롬 공유 on/off">베이스프롬 공유 ●</button>
-      <button class="hbtn" id="cardstyle-btn" onclick="openCardStylePop()">⊞ 카드</button>
-      <button class="hbtn" id="themebtn" onclick="openTheme()">🎨 테마</button>
-      <button class="hbtn" id="groupbtn" onclick="openGroupModal()" style="display:none">📁 그룹 관리</button>
+      <span class="vbadge">v45</span>
+      <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">공유설정</button>
+      <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none;border-color:rgba(248,204,228,.6);color:var(--cp)" title="베이스프롬 공유 on/off">베이스 ●</button>
+      <button class="hbtn" id="cardstyle-btn" onclick="openCardStylePop()">카드</button>
+      <button class="hbtn" id="themebtn" onclick="openTheme()">테마</button>
+      <button class="hbtn" id="groupbtn" onclick="openGroupModal()" style="display:none">그룹관리</button>
       <button class="hbtn" id="addbtn" onclick="openAddCat()" style="display:none">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
         추가
@@ -708,10 +708,7 @@ body.frame-polaroid .ovsub { color:var(--muted); }
   </div>
   <div class="mbar-right">
     <button class="mcopybtn" onclick="mergeCopy()">합쳐서 복사</button>
-    <div class="mseps">
-      <button class="msepbtn on" id="msepcomma" onclick="setSep('comma')">쉼표</button>
-      <button class="msepbtn" id="msepnl" onclick="setSep('newline')">줄바꿈</button>
-    </div>
+
   </div>
 </div>
 
@@ -1063,10 +1060,19 @@ function simpleHash(s) {
 }
 
 function applyViewerMode() {
-  // 베이스프롬 공유 여부 (뷰어 uid 기준으로 Firebase에서 읽어야 하지만
-  // 간단하게 URL 파라미터로 처리)
   const styleShared = params.get('style') !== '0';
   if (!styleShared) document.body.classList.add('hide-style');
+  // 테마 적용
+  const thParam = params.get('th');
+  if (thParam) {
+    try { applyTheme(JSON.parse(decodeURIComponent(thParam))); } catch(e){}
+  }
+  // 카드 스타일 적용
+  const csParam = params.get('cs');
+  const cfParam = params.get('cf');
+  if (csParam) localStorage.setItem('tv_cardstyle', csParam);
+  if (cfParam) localStorage.setItem('tv_cardframe', cfParam);
+  loadCardStyle();
 
   // 비밀번호 확인
   const storedPw = localStorage.getItem('tv_pw_' + VIEW_UID) || 'NO_PW';
@@ -1105,9 +1111,16 @@ function openShareSettings() {
   const pwParam = pwHash !== 'NO_PW' ? `&pw=${pwHash}` : '';
   const styleShared = localStorage.getItem('tv_style_shared') !== 'false';
   const styleParam  = styleShared ? '' : '&style=0';
+  // 테마/카드스타일 파라미터 포함
+  const theme = localStorage.getItem('tv_theme') || '';
+  const cardStyle = localStorage.getItem('tv_cardstyle') || 'vertical';
+  const cardFrame = localStorage.getItem('tv_cardframe') || 'none';
+  const themeParam = theme ? '&th=' + encodeURIComponent(theme) : '';
+  const csParam = cardStyle !== 'vertical' ? '&cs=' + cardStyle : '';
+  const cfParam = cardFrame !== 'none' ? '&cf=' + cardFrame : '';
   const base = location.origin + location.pathname;
-  document.getElementById('sharelink1').value = `${base}?view=1&uid=${uid}${pwParam}${styleParam}`;
-  document.getElementById('sharelink2').value = `${base}?view=1&uid=${uid}${pwParam}&pair=${pairKey}${styleParam}`;
+  document.getElementById('sharelink1').value = `${base}?view=1&uid=${uid}${pwParam}${styleParam}${themeParam}${csParam}${cfParam}`;
+  document.getElementById('sharelink2').value = `${base}?view=1&uid=${uid}${pwParam}&pair=${pairKey}${styleParam}${themeParam}${csParam}${cfParam}`;
   document.getElementById('sharecpbtn1').textContent = '복사';
   document.getElementById('sharecpbtn2').textContent = '복사';
   document.getElementById('sharecpbtn1').classList.remove('done');
@@ -1200,11 +1213,7 @@ function renderOverview() {
     html += `<div class="group-section">
       <div class="group-header">
         <button class="group-title" ondblclick="editGroupTitle(${gi},this)">${esc(g.name)}</button>
-        <div class="group-actions">
-          <button class="group-act-btn" onclick="moveGroup(${gi},-1)">↑</button>
-          <button class="group-act-btn" onclick="moveGroup(${gi},1)">↓</button>
-          <button class="group-act-btn" onclick="deleteGroup(${gi})">✕</button>
-        </div>
+        ${IS_VIEW ? '' : `<div class="group-actions"><button class="group-act-btn" onclick="moveGroup(${gi},-1)">↑</button><button class="group-act-btn" onclick="moveGroup(${gi},1)">↓</button><button class="group-act-btn" onclick="deleteGroup(${gi})">✕</button></div>`}
       </div>
       <div class="group-grid">${cards}</div>
     </div>`;
@@ -1220,7 +1229,7 @@ function renderOverview() {
     </div>`;
   }
 
-  html += `<button class="add-group-btn" onclick="addGroup()">+ 그룹 추가</button>`;
+  if (!IS_VIEW) html += `<button class="add-group-btn" onclick="addGroup()">+ 그룹 추가</button>`;
   grid.innerHTML = html;
 }
 
@@ -1273,7 +1282,7 @@ function renderDetail(id) {
         <div class="erow">
           <div class="etitle">${e.title?esc(e.title):'태그 목록'}</div>
           <div class="ebtns">
-            <button class="copybtn" onclick="openTagEdit('${cat.id}',${idx})">✏️ 편집</button>
+            ${IS_VIEW ? '' : `<button class="copybtn" onclick="openTagEdit('${cat.id}',${idx})">✏️ 편집</button>`}
             <button class="copybtn" onclick="cpAll('${cat.id}',${idx})">복사</button>
             <button class="delbtn" onclick="delEntry('${cat.id}',${idx})">✕</button>
           </div>
@@ -1289,8 +1298,7 @@ function renderDetail(id) {
     <div class="sumhead">
       <div class="sumtitle">✨ 전체 통합 태그 <span class="sumcnt">${allTags.length}개</span></div>
       <div class="sumacts">
-        <button class="sepbtn ${sepMode==='comma'?'on':''}" onclick="setSepRef('comma','${cat.id}')">쉼표</button>
-        <button class="sepbtn ${sepMode==='newline'?'on':''}" onclick="setSepRef('newline','${cat.id}')">줄바꿈</button>
+
         <button class="scpbtn" onclick="cpSummary('${cat.id}')">한번에 복사</button>
       </div>
     </div>
@@ -1366,7 +1374,7 @@ function mergeCopy() {
   });
   cpText(all.join(sepMode==='newline'?'\n':', '),`✓ ${all.length}개 태그 복사됨`);
 }
-function setSep(m){ sepMode=m; document.getElementById('msepcomma').classList.toggle('on',m==='comma'); document.getElementById('msepnl').classList.toggle('on',m==='newline'); }
+function setSep(m){ }
 function setSepRef(m,id){ setSep(m); renderDetail(id); }
 
 // ── COPY ──
@@ -1733,7 +1741,7 @@ function toggleStyleShare() {
 function updateStyleShareBtn(shared) {
   const btn = document.getElementById('stylesharebtn');
   if (!btn) return;
-  btn.textContent = shared ? '베이스프롬 공유 ●' : '베이스프롬 공유 ○';
+  btn.textContent = shared ? '베이스 ●' : '베이스 ○';
   btn.style.color = shared ? 'var(--cs)' : 'var(--dim)';
   btn.style.borderColor = shared ? 'rgba(196,224,255,.6)' : 'var(--border)';
 }
