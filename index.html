@@ -105,6 +105,7 @@ header { grid-column:1/-1; display:flex; align-items:center; padding:0 22px; gap
 /* OVERVIEW */
 .overview { padding:20px; }
 .ovgrid { display:block; }
+.ungrouped-section .group-grid { grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); }
 
 .ovempty { grid-column:1/-1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 20px; gap:10px; color:var(--dim); }
 .ovempty .ring { width:60px; height:60px; border-radius:50%; border:2px dashed var(--dim); display:flex; align-items:center; justify-content:center; font-size:24px; }
@@ -475,7 +476,7 @@ body.viewer.showpair .pairsec { display:block !important; }
 .add-group-btn:hover { border-color:var(--sky2); color:var(--cs); background:rgba(196,224,255,.1); }
 
 /* 그룹 그리드 */
-.group-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; margin-bottom:28px; }
+.group-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; margin-bottom:28px; }
 .group-section { margin-bottom:8px; }
 /* 미배정 카테고리 */
 .ungrouped-section { margin-bottom:20px; }
@@ -542,7 +543,7 @@ body.card-horizontal .ovcard { aspect-ratio:16/9; }
 
 /* 가로형일 때 그리드 조정 */
 body.card-horizontal .group-grid,
-body.card-horizontal .ovgrid { grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); }
+body.card-horizontal .ovgrid .group-grid { grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); }
 
 /* ━━ GALLERY DRAG ━━ */
 .gimgwrap { touch-action:none; }
@@ -579,7 +580,7 @@ body.card-horizontal .ovgrid { grid-template-columns:repeat(auto-fill,minmax(220
       </button>
     </div>
     <div class="hright">
-      <span class="vbadge">v37</span>
+      <span class="vbadge">v39</span>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">🔗 공유 설정</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none;border-color:rgba(248,204,228,.6);color:var(--cp)" title="베이스프롬 공유 on/off">베이스프롬 공유 ●</button>
       <button class="hbtn" id="cardstyle-btn" onclick="toggleCardStyle()">⊞ 카드</button>
@@ -1197,8 +1198,7 @@ function renderDetail(id) {
     </div>
   </div>`;
 
-  const _catIdForDrag = id;
-  const _detailHtml = `
+  document.getElementById('detail').innerHTML = `
     <button class="back-btn" onclick="goBack()">← 목록으로</button>
     <div class="hero">
       <div class="heroav">${cat.avatar?`<img src="${cat.avatar}" alt="">`:(cat.emoji||'🏷️')}</div>
