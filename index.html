@@ -87,7 +87,7 @@ header { grid-column:1/-1; display:flex; align-items:center; padding:0 22px; gap
 .catbtn:hover { background:var(--bg); }
 .catbtn.on { background:linear-gradient(100deg,rgba(196,224,255,.3),rgba(248,204,228,.25)); }
 .catbtn.on::before { content:''; position:absolute; left:0; top:22%; bottom:22%; width:2.5px; border-radius:3px; background:linear-gradient(180deg,var(--sky2),var(--pink2)); }
-.catav { width:40px; height:40px; border-radius:50%; flex-shrink:0; background:linear-gradient(135deg,var(--sky),var(--pink)); display:flex; align-items:center; justify-content:center; font-size:18px; overflow:hidden; border:1.5px solid var(--border); }
+.catav { width:52px; height:52px; border-radius:50%; flex-shrink:0; background:linear-gradient(135deg,var(--sky),var(--pink)); display:flex; align-items:center; justify-content:center; font-size:22px; overflow:hidden; border:1.5px solid var(--border); }
 .catav img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
 .catinfo { flex:1; min-width:0; }
 .catname { font-size:12.5px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -377,6 +377,9 @@ body.viewer.showpair .pairsec { display:block !important; }
   .sb-overlay { display:none !important; }
   .back-btn { display:none; }
 }
+
+.memobox { margin-top:6px; padding:10px 12px; background:rgba(248,232,255,.25); border-radius:8px; border:1px solid var(--border); font-size:12px; color:var(--text); line-height:1.7; white-space:pre-wrap; word-break:break-all; }
+.memobox:empty { display:none; }
 </style>
 </head>
 <body>
@@ -404,7 +407,7 @@ body.viewer.showpair .pairsec { display:block !important; }
       <button class="htab" data-tab="style" onclick="switchTab('style')">베이스프롬</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v25</span>
+      <span class="vbadge">v27</span>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">🔗 공유 설정</button>
       <button class="hbtn" id="addbtn" onclick="openAddCat()" style="display:none">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
@@ -519,6 +522,7 @@ body.viewer.showpair .pairsec { display:block !important; }
       <div class="field"><label>이름</label><input class="finput" id="catname" placeholder="예: 호무라"></div>
       <div class="field"><label>태그 식별자 (옵션)</label><input class="finput" id="cattag" placeholder="예: artist:호무라"></div>
       <div class="field"><label>이모지</label><input class="finput" id="catemoji" placeholder="🎨" maxlength="4"></div>
+      <div class="field"><label>메모 (엔터 적용)</label><textarea class="ftarea" id="catmemo" rows="3" placeholder="자유롭게 메모를 입력하세요..."></textarea></div>
     </div>
     <div class="mfoot">
       <button class="cancelbtn" onclick="closeCatModal()">취소</button>
@@ -748,8 +752,9 @@ function resizeImg(dataUrl, maxSize, q, cb) {
 }
 function onProfileFile(e) {
   const f=e.target.files[0]; if(!f) return;
-  new FileReader().onload = ev => resizeImg(ev.target.result,300,.85,b64=>{ pendingAv=b64; document.getElementById('pavprev').innerHTML=`<img src="${b64}">`; });
-  (new FileReader()).readAsDataURL(f);
+  const r=new FileReader();
+  r.onload=ev=>resizeImg(ev.target.result,300,.85,b64=>{ pendingAv=b64; document.getElementById('pavprev').innerHTML=`<img src="${b64}">`; });
+  r.readAsDataURL(f);
 }
 function _readFile(e, cb) {
   const r=new FileReader(); r.onload=ev=>cb(ev.target.result); r.readAsDataURL(e.target.files[0]);
@@ -889,6 +894,7 @@ function renderDetail(id) {
         <div class="heroname">${esc(cat.name)}</div>
         ${cat.tag?`<div class="herotag">${esc(cat.tag)}</div>`:''}
         <div class="herobadges"><span class="badge">항목 ${entries.length}개</span></div>
+        ${cat.memo ? `<div class="memobox">${cat.memo.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
       </div>
       <div class="herobtns">
         <button class="ibtn" onclick="openEditCat('${cat.id}')">✏️</button>
@@ -953,15 +959,15 @@ function closeLbox(){ document.getElementById('lbox').classList.remove('on'); }
 function switchTab(t){ tab=t; selId=null; document.querySelectorAll('.htab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t)); document.getElementById('overview').style.display='block'; document.getElementById('detail').style.display='none'; renderSidebar(); renderOverview(); }
 
 // ── CAT MODAL ──
-function openAddCat(){ if(IS_VIEW) return; editCatId=null; pendingAv=null; document.getElementById('catmodaltitle').textContent='카테고리 추가'; document.getElementById('catname').value=''; document.getElementById('cattag').value=''; document.getElementById('catemoji').value=tab==='artist'?'🎨':'✨'; document.getElementById('pavprev').innerHTML='🎨'; document.getElementById('pavinput').value=''; document.getElementById('catmodal').classList.add('on'); }
-function openEditCat(id){ if(IS_VIEW) return; const cat=(cache[tab]||[]).find(c=>c.id===id); if(!cat) return; editCatId=id; pendingAv=cat.avatar||null; document.getElementById('catmodaltitle').textContent='카테고리 편집'; document.getElementById('catname').value=cat.name; document.getElementById('cattag').value=cat.tag||''; document.getElementById('catemoji').value=cat.emoji||'🏷️'; document.getElementById('pavprev').innerHTML=cat.avatar?`<img src="${cat.avatar}" alt="">`:(cat.emoji||'🎨'); document.getElementById('catmodal').classList.add('on'); }
+function openAddCat(){ if(IS_VIEW) return; editCatId=null; pendingAv=null; document.getElementById('catmodaltitle').textContent='카테고리 추가'; document.getElementById('catname').value=''; document.getElementById('cattag').value=''; document.getElementById('catemoji').value=tab==='artist'?'🎨':'✨'; document.getElementById('catmemo').value=''; document.getElementById('pavprev').innerHTML='🎨'; document.getElementById('pavinput').value=''; document.getElementById('catmodal').classList.add('on'); }
+function openEditCat(id){ if(IS_VIEW) return; const cat=(cache[tab]||[]).find(c=>c.id===id); if(!cat) return; editCatId=id; pendingAv=cat.avatar||null; document.getElementById('catmodaltitle').textContent='카테고리 편집'; document.getElementById('catname').value=cat.name; document.getElementById('cattag').value=cat.tag||''; document.getElementById('catemoji').value=cat.emoji||'🏷️'; document.getElementById('catmemo').value=cat.memo||''; document.getElementById('pavprev').innerHTML=cat.avatar?`<img src="${cat.avatar}" alt="">`:(cat.emoji||'🎨'); document.getElementById('catmodal').classList.add('on'); }
 function closeCatModal(){ document.getElementById('catmodal').classList.remove('on'); }
 function saveCat(){
   if(IS_VIEW) return;
   const name=document.getElementById('catname').value.trim(); if(!name) return alert('이름을 입력하세요.');
-  const tag=document.getElementById('cattag').value.trim(), emoji=document.getElementById('catemoji').value.trim()||'🏷️', avatar=pendingAv||'';
-  if(editCatId){ const cat=(cache[tab]||[]).find(c=>c.id===editCatId); if(cat){cat.name=name;cat.tag=tag;cat.emoji=emoji;cat.avatar=avatar;} }
-  else{ if(!cache[tab]) cache[tab]=[]; cache[tab].push({id:'c'+Date.now(),name,tag,emoji,avatar,entries:[],gallery:[]}); }
+  const tag=document.getElementById('cattag').value.trim(), emoji=document.getElementById('catemoji').value.trim()||'🏷️', avatar=pendingAv||'', memo=document.getElementById('catmemo').value;
+  if(editCatId){ const cat=(cache[tab]||[]).find(c=>c.id===editCatId); if(cat){cat.name=name;cat.tag=tag;cat.emoji=emoji;cat.avatar=avatar;cat.memo=memo;} }
+  else{ if(!cache[tab]) cache[tab]=[]; cache[tab].push({id:'c'+Date.now(),name,tag,emoji,avatar,memo,entries:[],gallery:[]}); }
   saveDB(); closeCatModal();
 }
 function delCat(id){ if(IS_VIEW||!confirm('삭제할까요?')) return; cache[tab]=(cache[tab]||[]).filter(c=>c.id!==id); saveDB(); selId=null; document.getElementById('overview').style.display='block'; document.getElementById('detail').style.display='none'; }
