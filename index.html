@@ -607,10 +607,28 @@ body.frame-round .ovcard { border-radius:24px; }
 body.frame-square .ovcard { border-radius:4px; }
 body.frame-shadow .ovcard { box-shadow:0 8px 24px rgba(0,0,0,.25); }
 body.frame-border .ovcard { outline:3px solid var(--white); box-shadow:0 0 0 5px rgba(0,0,0,.15); }
-body.frame-polaroid .ovcard { border-radius:4px; background:var(--white); padding:6px 6px 28px; }
-body.frame-polaroid .ovthumb { border-radius:2px; position:relative; height:calc(100% - 28px); }
-body.frame-polaroid .ovinfo { position:absolute; bottom:-24px; left:0; right:0; padding:4px 8px; background:none; }
-body.frame-polaroid .ovname { color:var(--text); font-size:11px; text-shadow:none; }
+body.frame-polaroid .ovcard {
+  border-radius:4px;
+  background:var(--white);
+  border:1px solid var(--border);
+  box-shadow:0 4px 12px rgba(0,0,0,.12);
+  display:flex; flex-direction:column;
+  overflow:visible;
+}
+body.frame-polaroid .ovthumb {
+  position:relative;
+  margin:8px 8px 0;
+  border-radius:2px;
+  overflow:hidden;
+  flex:1;
+}
+body.frame-polaroid .ovinfo {
+  position:static;
+  padding:8px 10px 10px;
+  background:none;
+  min-height:40px;
+}
+body.frame-polaroid .ovname { color:var(--text); font-size:12px; font-weight:700; text-shadow:none; }
 body.frame-polaroid .ovsub { color:var(--muted); }
 </style>
 </head>
@@ -643,7 +661,7 @@ body.frame-polaroid .ovsub { color:var(--muted); }
       </button>
     </div>
     <div class="hright">
-      <span class="vbadge">v45</span>
+      <span class="vbadge">v46</span>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">공유설정</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none;border-color:rgba(248,204,228,.6);color:var(--cp)" title="베이스프롬 공유 on/off">베이스 ●</button>
       <button class="hbtn" id="cardstyle-btn" onclick="openCardStylePop()">카드</button>
@@ -1238,7 +1256,8 @@ function ovCardHtml(cat) {
   const g = cat.gallery || [];
   let thumbContent = '';
   const pos = cat.imgPos || {x:50,y:50,size:100};
-  const posStyle = `object-position:${pos.x}% ${pos.y}%;transform:scale(${(pos.size||100)/100});transform-origin:${pos.x}% ${pos.y}%`;
+  const sz = (pos.size||100)/100;
+  const posStyle = `object-fit:cover;object-position:${pos.x}% ${pos.y}%;transform:scale(${sz});transform-origin:${pos.x}% ${pos.y}%`;
   if (cat.avatar) {
     thumbContent = `<img src="${cat.avatar}" alt="" style="${posStyle}">`;
   } else if (g.length >= 4) {
@@ -1788,12 +1807,14 @@ let imgPosX = 50, imgPosY = 50, imgPosSize = 100;
 function openImgPos(catId) {
   if (IS_VIEW) return;
   const cat = (cache[tab]||[]).find(c=>c.id===catId); if(!cat) return;
-  const src = cat.avatar || (cat.gallery&&cat.gallery[0]) || '';
+  const g = cat.gallery || [];
+  const src = cat.avatar || (g.length ? g[0] : '');
   if (!src) return toast('이미지를 먼저 등록하세요');
   imgPosCatId = catId;
   const saved = cat.imgPos || {x:50,y:50,size:100};
   imgPosX = saved.x; imgPosY = saved.y; imgPosSize = saved.size||100;
-  document.getElementById('imgpos-img').src = src;
+  const img = document.getElementById('imgpos-img');
+  img.src = src;
   document.getElementById('imgpos-size').value = imgPosSize;
   document.getElementById('imgpos-size-val').textContent = imgPosSize + '%';
   updateImgPos();
@@ -1811,9 +1832,9 @@ function updateImgPos() {
   imgPosSize = parseInt(document.getElementById('imgpos-size').value);
   document.getElementById('imgpos-size-val').textContent = imgPosSize + '%';
   const img = document.getElementById('imgpos-img');
-  img.style.objectFit = imgPosSize > 100 ? 'cover' : 'cover';
+  img.style.objectFit = 'cover';
   img.style.objectPosition = imgPosX + '% ' + imgPosY + '%';
-  img.style.transform = imgPosSize > 100 ? 'scale(' + (imgPosSize/100) + ')' : '';
+  img.style.transform = 'scale(' + (imgPosSize/100) + ')';
   img.style.transformOrigin = imgPosX + '% ' + imgPosY + '%';
 }
 
