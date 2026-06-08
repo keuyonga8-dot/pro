@@ -154,6 +154,7 @@ body.frame-polaroid .ovsub {
 .ovthumb{position:absolute;inset:0;overflow:hidden;}.ovthumb img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;}
 .ovthumb img{width:100%;height:100%;object-fit:cover;display:block;}
 .ovthumb-emoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:52px;}
+.ovthumb-bg{position:absolute;inset:0;background-repeat:no-repeat;}
 .ovstrip{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:1px;}
 .ovstrip img{width:100%;height:100%;object-fit:cover;}
 .ovinfo{position:absolute;bottom:0;left:0;right:0;padding:28px 12px 12px;background:linear-gradient(to top,rgba(0,0,0,.65) 0%,transparent 100%);}
@@ -443,7 +444,7 @@ body.viewer.hide-style [data-tab="style"]{display:none !important;}
       <button class="htab" data-tab="style" onclick="switchTab('style')" ondblclick="editTabName('style',this)"><span id="tlab-style">베이스프롬</span></button>
     </div>
     <div class="hright">
-      <span class="vbadge">v58</span>
+      <span class="vbadge">v59</span>
       <button class="hbtn vonly" onclick="openTheme()">🎨</button>
       <button class="hbtn vonly" onclick="openCardStyle()">⊞</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
@@ -620,7 +621,7 @@ body.viewer.hide-style [data-tab="style"]{display:none !important;}
 <div class="popup" id="imgpospopup" onmousedown="if(event.target===this)closeImgPos()">
   <div class="popbox" onmousedown="event.stopPropagation()">
     <div class="pop-title">🖼️ 이미지 위치/크기 <button class="pop-close" onclick="closeImgPos()">×</button></div>
-    <div class="imgpos-preview" id="imgpos-preview"><img id="imgpos-img" src="" alt=""></div>
+    <div class="imgpos-preview" id="imgpos-preview" style="background-size:cover;background-position:50% 50%;background-repeat:no-repeat;"></div>
     <div style="font-size:11px;color:var(--muted);text-align:center">클릭 → 위치 · 슬라이더 → 크기</div>
     <div class="size-row"><label>크기</label><input type="range" id="imgpos-size" min="100" max="200" value="100" oninput="updateImgPos()"><span id="imgpos-size-val">100%</span></div>
     <div style="display:flex;gap:8px;justify-content:flex-end"><button class="cancelbtn" onclick="closeImgPos()">취소</button><button class="savebtn" onclick="saveImgPos()">저장</button></div>
@@ -765,7 +766,7 @@ function openCardImgPos(catId){
   else if(cs==='horizontal') ratio='16/9';
   else ratio='3/4';
   document.getElementById('imgpos-preview').style.aspectRatio=ratio;
-  document.getElementById('imgpos-img').src=src;
+  document.getElementById('imgpos-preview').style.backgroundImage=`url('${src}')`;
   document.getElementById('imgpos-size').value=imgPosSize;
   document.getElementById('imgpos-size-val').textContent=imgPosSize+'%';
   updateImgPos();
@@ -780,7 +781,7 @@ function openGalImgPos(catId,gi){
   imgPosCatId=catId;imgPosGalIdx=gi;
   const saved=(cat.galPos&&cat.galPos[gi])||{x:50,y:50,size:100};
   imgPosX=saved.x;imgPosY=saved.y;imgPosSize=saved.size||100;
-  document.getElementById('imgpos-img').src=src;
+  document.getElementById('imgpos-preview').style.backgroundImage=`url('${src}')`;
   document.getElementById('imgpos-size').value=imgPosSize;
   document.getElementById('imgpos-size-val').textContent=imgPosSize+'%';
   updateImgPos();
@@ -790,36 +791,41 @@ function initImgPosDrag(){
   const el=document.getElementById('imgpos-preview');
   if(!el||el._dragInited)return;
   el._dragInited=true;
-  let dragging=false,rafId=null;
-  const handle=(cx,cy)=>{
-    if(rafId)cancelAnimationFrame(rafId);
-    rafId=requestAnimationFrame(()=>{movePos(cx,cy,el);rafId=null;});
-  };
+  let dragging=false,startX=0,startY=0,startPosX=50,startPosY=50;
   el.style.cursor='grab';
-  el.addEventListener('mousedown',e=>{dragging=true;e.preventDefault();el.style.cursor='grabbing';handle(e.clientX,e.clientY);});
-  el.addEventListener('mousemove',e=>{if(!dragging)return;handle(e.clientX,e.clientY);});
+  const startDrag=(cx,cy)=>{
+    dragging=true;
+    startX=cx;startY=cy;
+    startPosX=imgPosX;startPosY=imgPosY;
+    el.style.cursor='grabbing';
+  };
+  const moveDrag=(cx,cy)=>{
+    if(!dragging)return;
+    const rect=el.getBoundingClientRect();
+    // 드래그 방향: 왼쪽으로 드래그 → 이미지 오른쪽 부분 보임 (posX 증가)
+    const dx=(cx-startX)/rect.width*100;
+    const dy=(cy-startY)/rect.height*100;
+    imgPosX=Math.max(0,Math.min(100,startPosX-dx));
+    imgPosY=Math.max(0,Math.min(100,startPosY-dy));
+    updateImgPos();
+  };
+  el.addEventListener('mousedown',e=>{e.preventDefault();startDrag(e.clientX,e.clientY);});
+  el.addEventListener('mousemove',e=>{moveDrag(e.clientX,e.clientY);});
   el.addEventListener('mouseup',()=>{dragging=false;el.style.cursor='grab';});
   el.addEventListener('mouseleave',()=>{dragging=false;el.style.cursor='grab';});
-  el.addEventListener('touchstart',e=>{dragging=true;e.preventDefault();handle(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
-  el.addEventListener('touchmove',e=>{if(!dragging)return;e.preventDefault();handle(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+  el.addEventListener('touchstart',e=>{e.preventDefault();startDrag(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+  el.addEventListener('touchmove',e=>{e.preventDefault();moveDrag(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
   el.addEventListener('touchend',()=>{dragging=false;});
 }
 
-function movePos(cx,cy,el){
-  const rect=el.getBoundingClientRect();
-  imgPosX=Math.max(0,Math.min(100,Math.round((cx-rect.left)/rect.width*100)));
-  imgPosY=Math.max(0,Math.min(100,Math.round((cy-rect.top)/rect.height*100)));
-  updateImgPos();
-}
+
 function updateImgPos(){
   imgPosSize=parseInt(document.getElementById('imgpos-size').value);
   document.getElementById('imgpos-size-val').textContent=imgPosSize+'%';
-  const img=document.getElementById('imgpos-img');
-  img.style.objectFit='cover';
-  img.style.objectPosition=imgPosX+'% '+imgPosY+'%';
-  img.style.transform='';
-  img.style.width='100%';
-  img.style.height='100%';
+  const el=document.getElementById('imgpos-preview');
+  const sz=imgPosSize<=100?'cover':imgPosSize+'%';
+  el.style.backgroundSize=sz;
+  el.style.backgroundPosition=imgPosX+'% '+imgPosY+'%';
 }
 function saveImgPos(){
   const cat=(cache[tab]||[]).find(c=>c.id===imgPosCatId);if(!cat)return;
@@ -964,13 +970,17 @@ function renderOverview(){
 function ovCardHtml(cat){
   const g=cat.gallery||[];
   const pos=cat.imgPos||{x:50,y:50,size:100};
-  const sz=(pos.size||100)/100;
-  const ps=`object-fit:cover;object-position:${pos.x}% ${pos.y}%;width:100%;height:100%;`;
+  const bgSz=(pos.size||100)<=100?'cover':(pos.size||100)+'%';
+  const bgPos=`${pos.x}% ${pos.y}%`;
   let thumb='';
-  if(cat.avatar) thumb=`<img src="${cat.avatar}" alt="" style="${ps}">`;
-  else if(g.length>=4) thumb=`<div class="ovstrip">${g.slice(0,4).map(s=>`<img src="${s}" alt="">`).join('')}</div>`;
-  else if(g.length) thumb=`<img src="${g[0]}" alt="" style="${ps}">`;
-  else thumb=`<div class="ovthumb-emoji">${cat.emoji||'🏷️'}</div>`;
+  const src=cat.avatar||(g.length?g[0]:'');
+  if(src && g.length<4){
+    thumb=`<div class="ovthumb-bg" style="background-image:url('${src}');background-size:${bgSz};background-position:${bgPos};"></div>`;
+  } else if(g.length>=4){
+    thumb=`<div class="ovstrip">${g.slice(0,4).map(s=>`<img src="${s}" alt="">`).join('')}</div>`;
+  } else {
+    thumb=`<div class="ovthumb-emoji">${cat.emoji||'🏷️'}</div>`;
+  }
   return `<div class="ovcard" onclick="selectCat('${cat.id}')">
     <div class="ovthumb">${thumb}</div>
     <div class="ovinfo"><div class="ovname">${esc(cat.name)}</div>${cat.tag?`<div class="ovsub">${esc(cat.tag)}</div>`:''}</div>
