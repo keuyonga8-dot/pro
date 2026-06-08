@@ -282,6 +282,101 @@ body.viewer .pairsec,
 body.viewer [data-tab="style"],
 body.viewer .hbtn:not(.viewonly) { display:none !important; }
 body.viewer.showpair .pairsec { display:block !important; }
+
+/* ━━ MOBILE ━━ */
+@media (max-width: 768px) {
+  :root { --sw: 0px; }
+
+  body { overflow:hidden; }
+
+  .app {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: 54px 1fr !important;
+  }
+
+  header { padding:0 14px; gap:8px; }
+  .logo { font-size:13px; }
+  .hdiv { display:none; }
+  .htabs { display:none; }
+  .vbadge { display:none; }
+  .hbtn { padding:5px 10px; font-size:11px; }
+
+  /* 사이드바 → 하단 슬라이드 패널 */
+  .sidebar {
+    position:fixed;
+    bottom:0; left:0; right:0;
+    height:60vh;
+    border-right:none;
+    border-top:1px solid var(--border);
+    border-radius:16px 16px 0 0;
+    box-shadow:0 -8px 32px rgba(140,120,180,.15);
+    z-index:80;
+    transform:translateY(100%);
+    transition:transform .3s cubic-bezier(.34,1.2,.64,1);
+    grid-column:unset; grid-row:unset;
+  }
+  .sidebar.open { transform:translateY(0); }
+
+  /* 핸들 바 */
+  .sb-handle {
+    width:36px; height:4px; border-radius:4px;
+    background:var(--border); margin:10px auto 0;
+  }
+
+  .main {
+    grid-column:1; grid-row:2;
+    padding-bottom:80px;
+  }
+
+  /* 하단 탭바 */
+  .mobile-tabbar {
+    position:fixed; bottom:0; left:0; right:0;
+    height:60px;
+    background:var(--white);
+    border-top:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-around;
+    z-index:70;
+    box-shadow:0 -2px 12px rgba(160,140,200,.1);
+  }
+  .mtab {
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    padding:8px 16px; border-radius:10px;
+    background:none; border:none; font-family:inherit;
+    font-size:10px; font-weight:600; color:var(--muted); cursor:pointer;
+    transition:all .15s; flex:1;
+  }
+  .mtab.on { color:var(--cs); background:rgba(196,224,255,.2); }
+  .mtab svg { width:20px; height:20px; }
+  .mtab-icon { font-size:20px; }
+
+  /* 사이드바 오버레이 */
+  .sb-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,.2);
+    z-index:79; display:none;
+  }
+  .sb-overlay.on { display:block; }
+
+  /* 디테일 뒤로가기 버튼 */
+  .back-btn {
+    display:flex; align-items:center; gap:6px;
+    background:none; border:none; font-family:inherit;
+    font-size:13px; font-weight:600; color:var(--cs);
+    cursor:pointer; padding:0 0 16px 0;
+  }
+
+  /* merge bar */
+  .mbar { left:12px; right:12px; bottom:70px; }
+
+  /* gallery bigger on mobile */
+  .gallery { grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); }
+}
+
+@media (min-width:769px) {
+  .mobile-tabbar { display:none; }
+  .sb-handle { display:none; }
+  .sb-overlay { display:none !important; }
+  .back-btn { display:none; }
+}
 </style>
 </head>
 <body>
@@ -309,7 +404,7 @@ body.viewer.showpair .pairsec { display:block !important; }
       <button class="htab" data-tab="style" onclick="switchTab('style')">베이스프롬</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v24</span>
+      <span class="vbadge">v25</span>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">🔗 공유 설정</button>
       <button class="hbtn" id="addbtn" onclick="openAddCat()" style="display:none">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 5v14M5 12h14"/></svg>
@@ -319,7 +414,9 @@ body.viewer.showpair .pairsec { display:block !important; }
     </div>
   </header>
 
-  <div class="sidebar">
+  <div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
+  <div class="sidebar" id="sidebar">
+    <div class="sb-handle"></div>
     <div class="sb-top">
       <div class="sb-label" id="sblabel">캐릭터명단</div>
       <div class="sbox">
@@ -334,6 +431,25 @@ body.viewer.showpair .pairsec { display:block !important; }
   <div class="main" id="mainarea">
     <div class="overview" id="overview"><div class="ovgrid" id="ovgrid"></div></div>
     <div class="detail" id="detail"></div>
+  </div>
+  <!-- MOBILE TABBAR -->
+  <div class="mobile-tabbar">
+    <button class="mtab on" id="mtab-home" onclick="mobileTab('home')">
+      <span class="mtab-icon">🏠</span>
+      홈
+    </button>
+    <button class="mtab" id="mtab-list" onclick="mobileTab('list')">
+      <span class="mtab-icon">📋</span>
+      목록
+    </button>
+    <button class="mtab" id="mtab-artist" onclick="switchTab('artist');mobileTab('home')">
+      <span class="mtab-icon">🎨</span>
+      캐릭터
+    </button>
+    <button class="mtab" id="mtab-style" onclick="switchTab('style');mobileTab('home')">
+      <span class="mtab-icon">✨</span>
+      베이스
+    </button>
   </div>
 </div>
 
@@ -693,6 +809,7 @@ function selectCat(id) {
   selId=id;
   document.getElementById('overview').style.display='none';
   document.getElementById('detail').style.display='block';
+  closeSidebar();
   renderSidebar(); renderDetail(id);
 }
 
@@ -765,6 +882,7 @@ function renderDetail(id) {
   </div>`;
 
   document.getElementById('detail').innerHTML=`
+    <button class="back-btn" onclick="goBack()">← 목록으로</button>
     <div class="hero">
       <div class="heroav">${cat.avatar?`<img src="${cat.avatar}" alt="">`:(cat.emoji||'🏷️')}</div>
       <div class="herobody">
@@ -893,6 +1011,37 @@ function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 //   }
 // }
 
+
+/* ── MOBILE ── */
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sbOverlay').classList.add('on');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sbOverlay').classList.remove('on');
+}
+
+function mobileTab(t) {
+  document.querySelectorAll('.mtab').forEach(b => b.classList.remove('on'));
+  if (t === 'list') {
+    document.getElementById('mtab-list').classList.add('on');
+    openSidebar();
+  } else {
+    document.getElementById('mtab-home').classList.add('on');
+    closeSidebar();
+  }
+}
+
+function goBack() {
+  selId = null;
+  document.getElementById('overview').style.display = 'block';
+  document.getElementById('detail').style.display = 'none';
+  renderSidebar();
+}
+
+// selectCat에서 모바일이면 사이드바 닫기
+const _origSelectCat = window.selectCat;
 loadFirebase();
 </script>
 </body>
