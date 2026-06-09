@@ -582,7 +582,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v65</span>
+      <span class="vbadge">v66</span>
       <button class="hbtn vonly" onclick="openTheme()">🎨</button>
       <button class="hbtn vonly" onclick="openCardStyle()">⊞</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
@@ -1079,15 +1079,12 @@ function openCardImgPos(catId){
   imgPosCatId=catId;imgPosGalIdx=-1;
   const saved=cat.imgPos||{x:50,y:50,size:100};
   imgPosX=saved.x;imgPosY=saved.y;imgPosSize=saved.size||100;
-  // [BUG FIX 2] 카드 비율과 동일하게 팝업 미리보기 비율 설정
   document.getElementById('imgpos-preview').style.aspectRatio=getCardAspectRatio();
-  const pi=document.getElementById('imgpos-img');if(pi)pi.src=src;
+  document.getElementById('imgpos-img').src=src;
   document.getElementById('imgpos-size').value=imgPosSize;
   document.getElementById('imgpos-size-val').textContent=imgPosSize+'%';
-  updateImgPos();
   document.getElementById('imgpospopup').classList.add('on');
-  // [BUG FIX 3] 팝업 열 때마다 드래그 핸들러 새로 등록
-  setTimeout(()=>initImgPosDrag(document.getElementById('imgpos-preview')),50);
+  setTimeout(()=>{applyImgPosToPreview();initImgPosDrag();},50);
 }
 
 function openGalImgPos(catId,gi){
@@ -1097,39 +1094,52 @@ function openGalImgPos(catId,gi){
   imgPosCatId=catId;imgPosGalIdx=gi;
   const saved=(cat.galPos&&cat.galPos[gi])||{x:50,y:50,size:100};
   imgPosX=saved.x;imgPosY=saved.y;imgPosSize=saved.size||100;
-  // [BUG FIX 2] 갤러리도 카드 비율과 동일하게 팝업 미리보기 비율 설정
   document.getElementById('imgpos-preview').style.aspectRatio=getCardAspectRatio();
-  const pi=document.getElementById('imgpos-img');if(pi)pi.src=src;
+  document.getElementById('imgpos-img').src=src;
   document.getElementById('imgpos-size').value=imgPosSize;
   document.getElementById('imgpos-size-val').textContent=imgPosSize+'%';
-  updateImgPos();
   document.getElementById('imgpospopup').classList.add('on');
-  // [BUG FIX 3] 팝업 열 때마다 드래그 핸들러 새로 등록
-  setTimeout(()=>initImgPosDrag(document.getElementById('imgpos-preview')),50);
+  setTimeout(()=>{applyImgPosToPreview();initImgPosDrag();},50);
 }
 
-// [BUG FIX 3] 드래그 핸들러 - cloneNode 없이 직접 관리
+// 미리보기 이미지에 현재 x/y/size 즉시 반영
+function applyImgPosToPreview(){
+  const img=document.getElementById('imgpos-img');
+  if(!img)return;
+  img.style.position='absolute';
+  img.style.objectFit='cover';
+  if(imgPosSize>100){
+    img.style.width=imgPosSize+'%';
+    img.style.height=imgPosSize+'%';
+    img.style.left=`${-(imgPosSize-100)*imgPosX/100}%`;
+    img.style.top=`${-(imgPosSize-100)*imgPosY/100}%`;
+    img.style.objectPosition='';
+  } else {
+    img.style.width='100%';
+    img.style.height='100%';
+    img.style.left='0';
+    img.style.top='0';
+    img.style.objectPosition=imgPosX+'% '+imgPosY+'%';
+  }
+}
+
 let _imgPosDragBound=null;
-function initImgPosDrag(el){
+function initImgPosDrag(){
+  const el=document.getElementById('imgpos-preview');
   if(!el)return;
   // 기존 핸들러 정리
   if(_imgPosDragBound){
     document.removeEventListener('mousemove',_imgPosDragBound.move);
     document.removeEventListener('mouseup',_imgPosDragBound.up);
   }
-  const img=el.querySelector('img')||document.getElementById('imgpos-img');
-  if(img){
-    img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
-    img.style.objectPosition=imgPosX+'% '+imgPosY+'%';
-  }
   el.style.cursor='grab';
   let dragging=false,startX=0,startY=0,startPosX=50,startPosY=50;
   const onDown=e=>{
     e.preventDefault();e.stopPropagation();
     dragging=true;
-    const cx=e.touches?e.touches[0].clientX:e.clientX;
-    const cy=e.touches?e.touches[0].clientY:e.clientY;
-    startX=cx;startY=cy;startPosX=imgPosX;startPosY=imgPosY;
+    startX=e.touches?e.touches[0].clientX:e.clientX;
+    startY=e.touches?e.touches[0].clientY:e.clientY;
+    startPosX=imgPosX;startPosY=imgPosY;
     el.style.cursor='grabbing';
   };
   const onMove=e=>{
@@ -1139,7 +1149,7 @@ function initImgPosDrag(el){
     const rect=el.getBoundingClientRect();
     imgPosX=Math.max(0,Math.min(100,startPosX-(cx-startX)/rect.width*100));
     imgPosY=Math.max(0,Math.min(100,startPosY-(cy-startY)/rect.height*100));
-    updateImgPos();
+    applyImgPosToPreview();
   };
   const onUp=()=>{dragging=false;el.style.cursor='grab';};
   el.onmousedown=onDown;
@@ -1151,37 +1161,10 @@ function initImgPosDrag(el){
   document.addEventListener('mouseup',onUp);
 }
 
-// 팝업 미리보기 이미지에 object-position 즉시 반영
-function updateImgPosOn(previewEl){
-  const el=previewEl||document.getElementById('imgpos-preview');
-  const img=el?el.querySelector('img'):document.getElementById('imgpos-img');
-  if(!img)return;
-  img.style.objectPosition=imgPosX+'% '+imgPosY+'%';
-}
-
 function updateImgPos(){
   imgPosSize=parseInt(document.getElementById('imgpos-size').value);
   document.getElementById('imgpos-size-val').textContent=imgPosSize+'%';
-  const preview=document.getElementById('imgpos-preview');
-  const img=preview?preview.querySelector('img'):null;
-  if(!img)return;
-  if(imgPosSize>100){
-    img.style.position='absolute';
-    img.style.width=imgPosSize+'%';
-    img.style.height=imgPosSize+'%';
-    img.style.objectFit='cover';
-    img.style.left=`${-(imgPosSize-100)*imgPosX/100}%`;
-    img.style.top=`${-(imgPosSize-100)*imgPosY/100}%`;
-    img.style.objectPosition='';
-  } else {
-    img.style.position='absolute';
-    img.style.width='100%';
-    img.style.height='100%';
-    img.style.objectFit='cover';
-    img.style.left='0';
-    img.style.top='0';
-    img.style.objectPosition=imgPosX+'% '+imgPosY+'%';
-  }
+  applyImgPosToPreview();
 }
 
 function saveImgPos(){
@@ -1189,29 +1172,21 @@ function saveImgPos(){
   if(imgPosGalIdx>=0){
     if(!cat.galPos)cat.galPos={};
     cat.galPos[imgPosGalIdx]={x:imgPosX,y:imgPosY,size:imgPosSize};
-    saveDB();closeImgPos();renderDetail(imgPosCatId);
   } else {
     cat.imgPos={x:imgPosX,y:imgPosY,size:imgPosSize};
-    // [BUG FIX 1] Firebase 저장 후 카드 이미지 DOM 직접 갱신 → 즉시 반영
-    applyImgPosToDom(imgPosCatId,imgPosX,imgPosY);
-    saveDB();closeImgPos();
-    if(selId===imgPosCatId)renderDetail(imgPosCatId);
   }
-}
-
-// [BUG FIX 1] 오버뷰 카드의 img DOM을 직접 업데이트하여 Firebase 콜백 없이 즉시 반영
-function applyImgPosToDom(catId,x,y){
-  document.querySelectorAll('.ovcard').forEach(card=>{
-    if(card.getAttribute('onclick')||''.includes(catId)||card.querySelector(`[onclick*="${catId}"]`)){
-      const img=card.querySelector('.ovthumb img');
-      if(img) img.style.objectPosition=x+'% '+y+'%';
-    }
-  });
-  // data속성이 없으므로 renderOverview로 보장
+  saveDB();
+  closeImgPos();
   renderOverview();
+  if(selId===imgPosCatId)renderDetail(imgPosCatId);
 }
 
 function closeImgPos(){
+  if(_imgPosDragBound){
+    document.removeEventListener('mousemove',_imgPosDragBound.move);
+    document.removeEventListener('mouseup',_imgPosDragBound.up);
+    _imgPosDragBound=null;
+  }
   document.getElementById('imgpospopup').classList.remove('on');
 }
 
