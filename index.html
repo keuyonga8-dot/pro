@@ -954,9 +954,8 @@ function onAuth(user){
     document.getElementById('app').classList.add('on');
     document.body.classList.add('viewer');
     if(PAIR_KEY) document.body.classList.add('showpair');
-    if(params.get('style')==='0') document.body.classList.add('hide-style');
+    // style 공개 여부는 Firebase settings에서 실시간으로 처리 (URL 파라미터 제거)
     if(VIEW_SLUG){
-      // 슬러그 → UID 조회
       fbDB.ref('slugs/'+VIEW_SLUG).once('value',snap=>{
         const uid=snap.val();
         if(uid) listenData(uid);
@@ -1011,6 +1010,12 @@ function listenData(uid){
     if(s.theme) applyTheme(s.theme);
     if(s.cardStyle){localStorage.setItem('tv_cardstyle',s.cardStyle);loadCardStyle();}
     if(s.cardFrame){localStorage.setItem('tv_cardframe',s.cardFrame);loadCardStyle();}
+    // 뷰어: 베이스 공개 여부를 Firebase에서 읽음 (URL 파라미터 불필요)
+    if(IS_VIEW && s.styleShared===false){
+      document.body.classList.add('hide-style');
+    } else if(IS_VIEW && s.styleShared===true){
+      document.body.classList.remove('hide-style');
+    }
   });
 }
 
@@ -1037,15 +1042,15 @@ function resizeImg(dataUrl,maxSize,q,cb){
     c.getContext('2d').drawImage(img,0,0,w,h);cb(c.toDataURL('image/jpeg',q));
   };img.src=dataUrl;
 }
-function onProfileFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>resizeImg(ev.target.result,600,.92,b64=>{pendingAv=b64;document.getElementById('pavprev').innerHTML=`<img src="${b64}" alt="">`;});r.readAsDataURL(f);}
-function onPairProfileFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>resizeImg(ev.target.result,600,.92,b64=>{pendingPairAv=b64;document.getElementById('pairpavprev').innerHTML=`<img src="${b64}" alt="">`;});r.readAsDataURL(f);}
+function onProfileFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>resizeImg(ev.target.result,1200,.95,b64=>{pendingAv=b64;document.getElementById('pavprev').innerHTML=`<img src="${b64}" alt="">`;});r.readAsDataURL(f);}
+function onPairProfileFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>resizeImg(ev.target.result,1200,.95,b64=>{pendingPairAv=b64;document.getElementById('pairpavprev').innerHTML=`<img src="${b64}" alt="">`;});r.readAsDataURL(f);}
 function onGalleryFile(e,catId){
   if(IS_VIEW)return;
   const files=Array.from(e.target.files);if(!files.length)return;
   const cat=(cache[tab]||[]).find(c=>c.id===catId);if(!cat)return;
   if(!cat.gallery)cat.gallery=[];
   let done=0;
-  files.forEach(f=>{const r=new FileReader();r.onload=ev=>resizeImg(ev.target.result,1200,.9,b64=>{cat.gallery.push(b64);if(++done===files.length){saveDB();renderDetail(selId);}});r.readAsDataURL(f);});
+  files.forEach(f=>{const r=new FileReader();r.onload=ev=>resizeImg(ev.target.result,1800,.92,b64=>{cat.gallery.push(b64);if(++done===files.length){saveDB();renderDetail(selId);}});r.readAsDataURL(f);});
   e.target.value='';
 }
 function delGalImg(catId,idx){
@@ -1103,41 +1108,53 @@ function openGalImgPos(catId,gi){
   setTimeout(()=>initImgPosDrag(document.getElementById('imgpos-preview')),50);
 }
 
-// [BUG FIX 3] _dragInited 플래그 제거 → 팝업 열 때마다 새 핸들러 등록
+// [BUG FIX 3] 드래그 핸들러 - cloneNode 없이 직접 관리
+let _imgPosDragBound=null;
 function initImgPosDrag(el){
   if(!el)return;
-  // 기존 핸들러 제거를 위해 clone으로 교체
-  const fresh=el.cloneNode(true);
-  el.parentNode.replaceChild(fresh,el);
-  // 이미지 src 복원
-  const img=fresh.querySelector('#imgpos-img')||fresh.querySelector('img');
+  // 기존 핸들러 정리
+  if(_imgPosDragBound){
+    document.removeEventListener('mousemove',_imgPosDragBound.move);
+    document.removeEventListener('mouseup',_imgPosDragBound.up);
+  }
+  const img=el.querySelector('img')||document.getElementById('imgpos-img');
   if(img){
-    img.src=document.getElementById('imgpos-img')?.src||img.src;
     img.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
     img.style.objectPosition=imgPosX+'% '+imgPosY+'%';
   }
-  fresh.style.cursor='grab';
+  el.style.cursor='grab';
   let dragging=false,startX=0,startY=0,startPosX=50,startPosY=50;
-  const startDrag=(cx,cy)=>{dragging=true;startX=cx;startY=cy;startPosX=imgPosX;startPosY=imgPosY;fresh.style.cursor='grabbing';};
-  const moveDrag=(cx,cy)=>{
+  const onDown=e=>{
+    e.preventDefault();e.stopPropagation();
+    dragging=true;
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    const cy=e.touches?e.touches[0].clientY:e.clientY;
+    startX=cx;startY=cy;startPosX=imgPosX;startPosY=imgPosY;
+    el.style.cursor='grabbing';
+  };
+  const onMove=e=>{
     if(!dragging)return;
-    const rect=fresh.getBoundingClientRect();
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    const cy=e.touches?e.touches[0].clientY:e.clientY;
+    const rect=el.getBoundingClientRect();
     imgPosX=Math.max(0,Math.min(100,startPosX-(cx-startX)/rect.width*100));
     imgPosY=Math.max(0,Math.min(100,startPosY-(cy-startY)/rect.height*100));
-    updateImgPosOn(fresh);
+    updateImgPos();
   };
-  fresh.addEventListener('mousedown',e=>{e.preventDefault();startDrag(e.clientX,e.clientY);});
-  fresh.addEventListener('mousemove',e=>{moveDrag(e.clientX,e.clientY);});
-  fresh.addEventListener('mouseup',()=>{dragging=false;fresh.style.cursor='grab';});
-  fresh.addEventListener('mouseleave',()=>{dragging=false;fresh.style.cursor='grab';});
-  fresh.addEventListener('touchstart',e=>{e.preventDefault();startDrag(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
-  fresh.addEventListener('touchmove',e=>{e.preventDefault();moveDrag(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
-  fresh.addEventListener('touchend',()=>{dragging=false;});
+  const onUp=()=>{dragging=false;el.style.cursor='grab';};
+  el.onmousedown=onDown;
+  el.ontouchstart=e=>{e.preventDefault();onDown(e);};
+  el.ontouchmove=e=>{e.preventDefault();onMove(e);};
+  el.ontouchend=onUp;
+  _imgPosDragBound={move:onMove,up:onUp};
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',onUp);
 }
 
 // 팝업 미리보기 이미지에 object-position 즉시 반영
 function updateImgPosOn(previewEl){
-  const img=previewEl?previewEl.querySelector('img'):document.getElementById('imgpos-img');
+  const el=previewEl||document.getElementById('imgpos-preview');
+  const img=el?el.querySelector('img'):document.getElementById('imgpos-img');
   if(!img)return;
   img.style.objectPosition=imgPosX+'% '+imgPosY+'%';
 }
@@ -1146,7 +1163,25 @@ function updateImgPos(){
   imgPosSize=parseInt(document.getElementById('imgpos-size').value);
   document.getElementById('imgpos-size-val').textContent=imgPosSize+'%';
   const preview=document.getElementById('imgpos-preview');
-  updateImgPosOn(preview);
+  const img=preview?preview.querySelector('img'):null;
+  if(!img)return;
+  if(imgPosSize>100){
+    img.style.position='absolute';
+    img.style.width=imgPosSize+'%';
+    img.style.height=imgPosSize+'%';
+    img.style.objectFit='cover';
+    img.style.left=`${-(imgPosSize-100)*imgPosX/100}%`;
+    img.style.top=`${-(imgPosSize-100)*imgPosY/100}%`;
+    img.style.objectPosition='';
+  } else {
+    img.style.position='absolute';
+    img.style.width='100%';
+    img.style.height='100%';
+    img.style.objectFit='cover';
+    img.style.left='0';
+    img.style.top='0';
+    img.style.objectPosition=imgPosX+'% '+imgPosY+'%';
+  }
 }
 
 function saveImgPos(){
@@ -1317,13 +1352,18 @@ function renderOverview(){
 function ovCardHtml(cat){
   const g=cat.gallery||[];
   const pos=cat.imgPos||{x:50,y:50,size:100};
+  const sz=pos.size||100;
+  // size>100이면 이미지를 키우고 object-position으로 위치 조정
+  const imgStyle=sz>100
+    ?`position:absolute;inset:0;width:${sz}%;height:${sz}%;object-fit:cover;left:${-(sz-100)*pos.x/100}%;top:${-(sz-100)*pos.y/100}%;`
+    :`position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${pos.x}% ${pos.y}%;`;
   let thumb='';
   if(cat.avatar){
-    thumb=`<img src="${cat.avatar}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${pos.x}% ${pos.y}%;">`;
+    thumb=`<img src="${cat.avatar}" alt="" style="${imgStyle}">`;
   } else if(g.length>=4){
     thumb=`<div class="ovstrip">${g.slice(0,4).map(s=>`<img src="${s}" alt="">`).join('')}</div>`;
   } else if(g.length){
-    thumb=`<img src="${g[0]}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:${pos.x}% ${pos.y}%;">`;
+    thumb=`<img src="${g[0]}" alt="" style="${imgStyle}">`;
   } else {
     thumb=`<div class="ovthumb-emoji">${cat.emoji||'🏷️'}</div>`;
   }
@@ -1683,7 +1723,15 @@ function editTabName(key,btn){
 
 // ── STYLE SHARE ──
 function loadStyleShare(){const shared=localStorage.getItem('tv_style_shared')!=='false';updateStyleShareBtn(shared);}
-function toggleStyleShare(){const cur=localStorage.getItem('tv_style_shared')!=='false';localStorage.setItem('tv_style_shared',String(!cur));updateStyleShareBtn(!cur);toast(!cur?'베이스프롬 공유 켜짐':'베이스프롬 공유 꺼짐');}
+function toggleStyleShare(){
+  const cur=localStorage.getItem('tv_style_shared')!=='false';
+  const next=!cur;
+  localStorage.setItem('tv_style_shared',String(next));
+  updateStyleShareBtn(next);
+  // Firebase에도 저장 → 뷰어에서 URL 파라미터 없이 반영
+  saveSettings('styleShared',next);
+  toast(next?'베이스프롬 공유 켜짐':'베이스프롬 공유 꺼짐');
+}
 function updateStyleShareBtn(shared){const btn=document.getElementById('stylesharebtn');if(!btn)return;btn.textContent=shared?'베이스 ●':'베이스 ○';btn.style.color=shared?'var(--cs)':'var(--dim)';}
 
 // ── SHARE ──
@@ -1707,15 +1755,13 @@ function _buildShareLinks(slug){
   const storedHash=localStorage.getItem('tv_pw_'+uid)||'NO_PW';
   const pwParam=storedHash!=='NO_PW'?`&pw=${storedHash}`:'';
   const pairKey=localStorage.getItem('tv_pairkey_'+uid)||'secret';
-  const styleShared=localStorage.getItem('tv_style_shared')!=='false';
-  const styleParam=styleShared?'':'&style=0';
   const base=location.origin+location.pathname;
   if(slug){
-    document.getElementById('sharelink1').value=`${base}?v=${slug}${pwParam}${styleParam}`;
-    document.getElementById('sharelink2').value=`${base}?v=${slug}${pwParam}&pair=${pairKey}${styleParam}`;
+    document.getElementById('sharelink1').value=`${base}?v=${slug}${pwParam}`;
+    document.getElementById('sharelink2').value=`${base}?v=${slug}${pwParam}&pair=${pairKey}`;
   } else {
-    document.getElementById('sharelink1').value=`${base}?view=1&uid=${uid}${pwParam}${styleParam}`;
-    document.getElementById('sharelink2').value=`${base}?view=1&uid=${uid}${pwParam}&pair=${pairKey}${styleParam}`;
+    document.getElementById('sharelink1').value=`${base}?view=1&uid=${uid}${pwParam}`;
+    document.getElementById('sharelink2').value=`${base}?view=1&uid=${uid}${pwParam}&pair=${pairKey}`;
   }
   ['1','2'].forEach(n=>{document.getElementById('sharecpbtn'+n).textContent='복사';document.getElementById('sharecpbtn'+n).classList.remove('done');});
 }
@@ -2154,7 +2200,7 @@ function closeProfileEditor(){
 function peLoadImg(e){
   const f=e.target.files[0];if(!f)return;
   const r=new FileReader();
-  r.onload=ev=>resizeImg(ev.target.result,600,.85,b64=>{
+  r.onload=ev=>resizeImg(ev.target.result,1200,.95,b64=>{
     peState.img=b64;
     document.getElementById('pe-img-thumb').src=b64;
     document.getElementById('pe-img-preview').style.display='';
