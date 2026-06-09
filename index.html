@@ -277,7 +277,8 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .pairav{width:34px;height:34px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--pink),var(--sky));display:flex;align-items:center;justify-content:center;font-size:15px;overflow:hidden;border:1.5px solid var(--pink2);}
 .pairav img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .pairbody{flex:1;min-width:0;}
-.pairname{font-size:11.5px;font-weight:700;margin-bottom:4px;}
+.pairname{font-size:11.5px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px;}
+.pair-dplus{font-size:10px;font-weight:500;color:var(--cp);font-family:'DM Mono',monospace;opacity:.85;}
 .pairtags{display:flex;flex-wrap:wrap;gap:3px;}
 .pairacts{display:flex;gap:4px;flex-shrink:0;}
 
@@ -524,7 +525,7 @@ body.viewer.hide-style [data-tab="style"]{display:none !important;}
       <button class="htab" data-tab="style" onclick="switchTab('style')" ondblclick="editTabName('style',this)"><span id="tlab-style">베이스프롬</span></button>
     </div>
     <div class="hright">
-      <span class="vbadge">v62</span>
+      <span class="vbadge">v64</span>
       <button class="hbtn vonly" onclick="openTheme()">🎨</button>
       <button class="hbtn vonly" onclick="openCardStyle()">⊞</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
@@ -628,6 +629,10 @@ body.viewer.hide-style [data-tab="style"]{display:none !important;}
       </div>
       <div class="field"><label>이름</label><input class="finput" id="pairname" placeholder="예: detail tweaker"></div>
       <div class="field"><label>이모지 (선택)</label><input class="finput" id="pairemoji" placeholder="없으면 비워두세요" maxlength="4"></div>
+      <div class="field"><label>기념일 (선택 — D+ 자동 계산)</label>
+        <input class="finput" id="pairdate" type="date">
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">설정 시 이름 옆에 D+N 자동 표시</div>
+      </div>
       <div class="field"><label>태그 목록</label><textarea class="ftarea" id="pairtags" rows="3" placeholder="lora:detail_tweaker:0.8, ..."></textarea></div>
     </div>
     <div class="mfoot"><button class="cancelbtn" onclick="closePairModal()">취소</button><button class="savebtn" onclick="savePair()">저장</button></div>
@@ -781,8 +786,22 @@ body.viewer.hide-style [data-tab="style"]{display:none !important;}
 
         <div class="pe-section">
           <div class="pe-sec-label">버릇 / 습관</div>
-          <div id="pe-habits-list"></div>
-          <button class="pe-add-btn" onclick="peAddItem('habits')">+ 추가</button>
+          <div class="pe-field">
+            <label style="display:flex;align-items:center;justify-content:space-between;">
+              <span>섹션 제목</span>
+            </label>
+            <input class="pe-input" id="pe-label-habits" value="Habits" oninput="peSync()" style="margin-bottom:5px;">
+            <label>내용</label>
+            <textarea class="pe-textarea" id="pe-habits-text" rows="4" placeholder="줄바꿈으로 구분해서 입력하세요" oninput="peSyncHabits()"></textarea>
+          </div>
+        </div>
+
+        <div class="pe-section">
+          <div class="pe-sec-label">섹션 제목 변경</div>
+          <div class="pe-field"><label>Personality</label><input class="pe-input" id="pe-label-personality" value="Personality" oninput="peSync()"></div>
+          <div class="pe-field"><label>Features</label><input class="pe-input" id="pe-label-features" value="Features" oninput="peSync()"></div>
+          <div class="pe-field"><label>Background</label><input class="pe-input" id="pe-label-settings" value="Background" oninput="peSync()"></div>
+          <div class="pe-field"><label>Current Situation</label><input class="pe-input" id="pe-label-situation" value="Current Situation" oninput="peSync()"></div>
         </div>
 
         <div class="pe-section">
@@ -870,6 +889,8 @@ function onAuth(user){
 function signIn(){const p=new firebase.auth.GoogleAuthProvider();fbAuth.signInWithPopup(p).catch(e=>alert('로그인 실패: '+e.message));}
 function signOut(){fbAuth.signOut();}
 
+let fbGroups={artist:[],style:[]};// Firebase에서 받은 그룹 캐시
+
 function listenData(uid){
   fbDB.ref('users/'+uid+'/data').on('value',snap=>{
     const v=snap.val()||{};
@@ -879,6 +900,15 @@ function listenData(uid){
     };
     renderSidebar();renderOverview();
     if(selId)renderDetail(selId);
+  });
+  // 그룹도 Firebase 구독 (뷰어에서도 보이도록)
+  fbDB.ref('users/'+uid+'/groups').on('value',snap=>{
+    const v=snap.val()||{};
+    fbGroups={
+      artist:v.artist||[],
+      style:v.style||[]
+    };
+    renderOverview();
   });
   fbDB.ref('users/'+uid+'/settings').on('value',snap=>{
     const s=snap.val();if(!s)return;
@@ -911,15 +941,15 @@ function resizeImg(dataUrl,maxSize,q,cb){
     c.getContext('2d').drawImage(img,0,0,w,h);cb(c.toDataURL('image/jpeg',q));
   };img.src=dataUrl;
 }
-function onProfileFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>resizeImg(ev.target.result,300,.85,b64=>{pendingAv=b64;document.getElementById('pavprev').innerHTML=`<img src="${b64}" alt="">`;});r.readAsDataURL(f);}
-function onPairProfileFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>resizeImg(ev.target.result,300,.85,b64=>{pendingPairAv=b64;document.getElementById('pairpavprev').innerHTML=`<img src="${b64}" alt="">`;});r.readAsDataURL(f);}
+function onProfileFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>resizeImg(ev.target.result,600,.92,b64=>{pendingAv=b64;document.getElementById('pavprev').innerHTML=`<img src="${b64}" alt="">`;});r.readAsDataURL(f);}
+function onPairProfileFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>resizeImg(ev.target.result,600,.92,b64=>{pendingPairAv=b64;document.getElementById('pairpavprev').innerHTML=`<img src="${b64}" alt="">`;});r.readAsDataURL(f);}
 function onGalleryFile(e,catId){
   if(IS_VIEW)return;
   const files=Array.from(e.target.files);if(!files.length)return;
   const cat=(cache[tab]||[]).find(c=>c.id===catId);if(!cat)return;
   if(!cat.gallery)cat.gallery=[];
   let done=0;
-  files.forEach(f=>{const r=new FileReader();r.onload=ev=>resizeImg(ev.target.result,800,.82,b64=>{cat.gallery.push(b64);if(++done===files.length){saveDB();renderDetail(selId);}});r.readAsDataURL(f);});
+  files.forEach(f=>{const r=new FileReader();r.onload=ev=>resizeImg(ev.target.result,1200,.9,b64=>{cat.gallery.push(b64);if(++done===files.length){saveDB();renderDetail(selId);}});r.readAsDataURL(f);});
   e.target.value='';
 }
 function delGalImg(catId,idx){
@@ -1253,18 +1283,22 @@ function renderDetail(id){
       ${IS_VIEW?'':`<button class="scpbtn" onclick="openPairModal('${cat.id}')" style="font-size:10px;padding:4px 10px">+ 추가</button>`}
     </div>
     ${!pair.length?'<div class="pairempty">Pair를 추가해보세요</div>':
-      pair.map((p,pi)=>`<div class="paircard" data-pi="${pi}">
-        ${IS_VIEW?'':`<span class="pair-drag">⠿</span>`}
-        <div class="pairav">${p.avatar?`<img src="${p.avatar}" alt="">`:p.emoji?p.emoji:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>'}</div>
-        <div class="pairbody"><div class="pairname">${esc(p.name)}</div>
-          <div class="pairtags">${(p.tags||[]).map((t,i)=>`<span class="chip ${ks[i%6]}" onclick="cpTag('${esc(t)}')">${esc(t)}</span>`).join('')}</div>
-        </div>
-        <div class="pairacts">
-          ${IS_VIEW?'':`<button class="copybtn" onclick="openPairModal('${cat.id}',${pi})">✏️</button>`}
-          <button class="copybtn" onclick="cpPairCat('${cat.id}',${pi})">복사</button>
-          ${IS_VIEW?'':`<button class="delbtn" onclick="delPairCat('${cat.id}',${pi})">✕</button>`}
-        </div>
-      </div>`).join('')}
+      pair.map((p,pi)=>{
+        const dplus=p.startDate?calcDPlus(p.startDate):'';
+        return `<div class="paircard" data-pi="${pi}">
+          ${IS_VIEW?'':`<span class="pair-drag">⠿</span>`}
+          <div class="pairav">${p.avatar?`<img src="${p.avatar}" alt="">`:p.emoji?p.emoji:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>'}</div>
+          <div class="pairbody">
+            <div class="pairname">${esc(p.name)}${dplus?`<span class="pair-dplus">${dplus}</span>`:''}</div>
+            <div class="pairtags">${(p.tags||[]).map((t,i)=>`<span class="chip ${ks[i%6]}" onclick="cpTag('${esc(t)}')">${esc(t)}</span>`).join('')}</div>
+          </div>
+          <div class="pairacts">
+            ${IS_VIEW?'':`<button class="copybtn" onclick="openPairModal('${cat.id}',${pi})">✏️</button>`}
+            <button class="copybtn" onclick="cpPairCat('${cat.id}',${pi})">복사</button>
+            ${IS_VIEW?'':`<button class="delbtn" onclick="delPairCat('${cat.id}',${pi})">✕</button>`}
+          </div>
+        </div>`;
+      }).join('')}
   </div>`:'';
 
   // 갤러리: 비어있고 뷰어면 숨김
@@ -1314,7 +1348,7 @@ function renderDetail(id){
       <div class="herobody">
         <div class="heroname">${esc(cat.name)}</div>
         ${cat.tag?`<div class="herotag">${esc(cat.tag)}</div>`:''}
-        <div class="herobadges"><span class="badge">항목 ${entries.length}개</span></div>
+        ${entries.length?`<div class="herobadges"><span class="badge">항목 ${entries.length}개</span></div>`:''}
         ${cat.memo?`<div class="memobox">${esc(cat.memo)}</div>`:''}
       </div>
       <div class="herobtns">
@@ -1341,6 +1375,16 @@ function switchDetailTab(t,catId){
   const pn=document.getElementById('dtpane-'+t);
   if(tb)tb.classList.add('on');
   if(pn)pn.classList.add('on');
+}
+
+// D+ 계산
+function calcDPlus(dateStr){
+  if(!dateStr)return'';
+  const start=new Date(dateStr);start.setHours(0,0,0,0);
+  const today=new Date();today.setHours(0,0,0,0);
+  const diff=Math.floor((today-start)/(1000*60*60*24));
+  if(diff<0)return'';
+  return'D+'+(diff+1);
 }
 
 // Pair 제목 더블클릭 편집
@@ -1487,10 +1531,10 @@ function openPairModal(catId,editIdx){
   if(pairEditIdx>=0&&catId){
     const cat=(cache[tab]||[]).find(c=>c.id===catId);
     const p=cat&&cat.pair&&cat.pair[pairEditIdx];
-    if(p){document.getElementById('pairmodaltitle').textContent='💘 Pair 편집';document.getElementById('pairname').value=p.name||'';document.getElementById('pairemoji').value=p.emoji||'';document.getElementById('pairtags').value=(p.tags||[]).join(', ');pendingPairAv=p.avatar||null;document.getElementById('pairpavprev').innerHTML=p.avatar?`<img src="${p.avatar}" alt="">`:(p.emoji||'💘');document.getElementById('pairmodal').classList.add('on');return;}
+    if(p){document.getElementById('pairmodaltitle').textContent='💘 Pair 편집';document.getElementById('pairname').value=p.name||'';document.getElementById('pairemoji').value=p.emoji||'';document.getElementById('pairdate').value=p.startDate||'';document.getElementById('pairtags').value=(p.tags||[]).join(', ');pendingPairAv=p.avatar||null;document.getElementById('pairpavprev').innerHTML=p.avatar?`<img src="${p.avatar}" alt="">`:(p.emoji||'💘');document.getElementById('pairmodal').classList.add('on');return;}
   }
   document.getElementById('pairmodaltitle').textContent='💘 Pair 추가';
-  document.getElementById('pairname').value='';document.getElementById('pairemoji').value='';document.getElementById('pairtags').value='';document.getElementById('pairpavprev').innerHTML='💘';document.getElementById('pairpavinput').value='';
+  document.getElementById('pairname').value='';document.getElementById('pairemoji').value='';document.getElementById('pairdate').value='';document.getElementById('pairtags').value='';document.getElementById('pairpavprev').innerHTML='💘';document.getElementById('pairpavinput').value='';
   document.getElementById('pairmodal').classList.add('on');
 }
 function closePairModal(){document.getElementById('pairmodal').classList.remove('on');}
@@ -1499,7 +1543,8 @@ function savePair(){
   const name=document.getElementById('pairname').value.trim();if(!name)return alert('이름을 입력하세요.');
   const emoji=document.getElementById('pairemoji').value.trim()||'';
   const tags=document.getElementById('pairtags').value.split(/[\n,]+/).map(t=>t.trim()).filter(Boolean);
-  const newP={name,emoji,avatar:pendingPairAv||'',tags};
+  const startDate=document.getElementById('pairdate').value||'';
+  const newP={name,emoji,avatar:pendingPairAv||'',startDate,tags};
   if(pairTargetCatId){const cat=(cache[tab]||[]).find(c=>c.id===pairTargetCatId);if(cat){if(!cat.pair)cat.pair=[];if(pairEditIdx>=0&&cat.pair[pairEditIdx])cat.pair[pairEditIdx]=newP;else cat.pair.push(newP);}}
   pairEditIdx=-1;saveDB();closePairModal();if(selId)renderDetail(selId);
 }
@@ -1518,9 +1563,13 @@ function delTagRow(i){const r=document.getElementById('tagrow-'+i);if(r)r.remove
 function saveTagEdit(){if(!tagEditTarget)return;const{catId,idx}=tagEditTarget;const cat=(cache[tab]||[]).find(c=>c.id===catId);if(!cat)return;const tags=[...document.querySelectorAll('.tag-edit-input')].map(r=>r.value.trim()).filter(Boolean);cat.entries[idx].tags=tags;saveDB();closeTagEdit();renderDetail(catId);}
 function closeTagEdit(){document.getElementById('tageditmodal').classList.remove('on');tagEditTarget=null;}
 
-// ── GROUPS ──
-function getGroups(){return JSON.parse(localStorage.getItem('tv_groups_'+tab)||'[]');}
-function saveGroups(groups){localStorage.setItem('tv_groups_'+tab,JSON.stringify(groups));}
+// ── GROUPS (Firebase 저장 — 뷰어에서도 보임) ──
+function getGroups(){return fbGroups[tab]||[];}
+function saveGroups(groups){
+  fbGroups[tab]=groups;
+  if(IS_VIEW||!currentUser)return;
+  fbDB.ref('users/'+currentUser.uid+'/groups/'+tab).set(groups.length?groups:null).catch(e=>console.error('groups save:',e));
+}
 function addGroup(){const name=prompt('그룹 이름','새 그룹');if(!name)return;const groups=getGroups();groups.push({id:'g'+Date.now(),name});saveGroups(groups);renderOverview();}
 function deleteGroup(gi){if(!confirm('그룹을 삭제할까요?'))return;const groups=getGroups();const gid=groups[gi]?.id;groups.splice(gi,1);saveGroups(groups);(cache[tab]||[]).forEach(c=>{if(c.groupId===gid)delete c.groupId;});saveDB();renderOverview();}
 function moveGroup(gi,dir){const groups=getGroups();const ni=gi+dir;if(ni<0||ni>=groups.length)return;[groups[gi],groups[ni]]=[groups[ni],groups[gi]];saveGroups(groups);renderOverview();}
@@ -1635,7 +1684,7 @@ function resetTheme(){localStorage.removeItem('tv_theme');applyTheme(THEME_PRESE
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
 // ── PROFILE SHEET ──
-let peState={name:'',codename:'',cls:'가이드',classdesc:'',personality:'',features:'',settings:'',situation:'',likes:[],dislikes:[],habits:[],accent:'#c9a96e',img:''};
+let peState={name:'',codename:'',cls:'가이드',classdesc:'',personality:'',features:'',settings:'',situation:'',likes:[],dislikes:[],habits:[],habitsText:'',accent:'#c9a96e',img:'',labels:{personality:'Personality',features:'Features',settings:'Background',situation:'Current Situation',habits:'Habits'}};
 let peCatId=null;
 
 const PE_ACCENT_COLORS=['#c9a96e','#9b8ec4','#5fa89a','#c97070','#7ea87e','#a07ea8','#5f88c9','#c9b840','#c98060'];
@@ -1643,10 +1692,10 @@ const PE_ACCENT_COLORS=['#c9a96e','#9b8ec4','#5fa89a','#c97070','#7ea87e','#a07e
 function openProfileEditor(catId){
   if(IS_VIEW)return;
   const cat=(cache[tab]||[]).find(c=>c.id===catId);
-  // 다른 카테고리이거나 처음 열 때만 상태 초기화
   if(peCatId!==catId){
     peCatId=catId;
     const p=cat&&cat.profile?cat.profile:{};
+    const defLabels={personality:'Personality',features:'Features',settings:'Background',situation:'Current Situation',habits:'Habits'};
     peState={
       name:p.name||cat?.name||'',
       codename:p.codename||'',
@@ -1659,11 +1708,12 @@ function openProfileEditor(catId){
       likes:p.likes?[...p.likes]:[],
       dislikes:p.dislikes?[...p.dislikes]:[],
       habits:p.habits?[...p.habits]:[],
+      habitsText:p.habitsText||(p.habits?(p.habits).join('\n'):''),
       accent:p.accent||'#c9a96e',
-      img:p.img||''
+      img:p.img||'',
+      labels:{...defLabels,...(p.labels||{})}
     };
   }
-  // 폼 채우기
   document.getElementById('pe-name').value=peState.name;
   document.getElementById('pe-codename').value=peState.codename;
   document.querySelectorAll('input[name="pe-cls"]').forEach(r=>{r.checked=(r.value===peState.cls);});
@@ -1672,6 +1722,14 @@ function openProfileEditor(catId){
   document.getElementById('pe-features').value=peState.features;
   document.getElementById('pe-settings').value=peState.settings;
   document.getElementById('pe-situation').value=peState.situation;
+  // habits textarea
+  document.getElementById('pe-habits-text').value=peState.habitsText;
+  // 섹션 라벨
+  document.getElementById('pe-label-personality').value=peState.labels.personality;
+  document.getElementById('pe-label-features').value=peState.labels.features;
+  document.getElementById('pe-label-settings').value=peState.labels.settings;
+  document.getElementById('pe-label-situation').value=peState.labels.situation;
+  document.getElementById('pe-label-habits').value=peState.labels.habits;
   if(peState.img){
     document.getElementById('pe-img-thumb').src=peState.img;
     document.getElementById('pe-img-preview').style.display='';
@@ -1680,7 +1738,7 @@ function openProfileEditor(catId){
     document.getElementById('pe-img-preview').style.display='none';
     document.getElementById('pe-img-zone').style.display='';
   }
-  ['likes','dislikes','habits'].forEach(t=>peRenderList(t));
+  ['likes','dislikes'].forEach(t=>peRenderList(t));
   document.querySelectorAll('.pe-swatch').forEach(sw=>{sw.classList.toggle('on',sw.dataset.color===peState.accent);});
   peSync();
   document.getElementById('profilepopup').classList.add('on');
@@ -1736,8 +1794,13 @@ function peRenderList(type){
   });
 }
 
+function peSyncHabits(){
+  peState.habitsText=document.getElementById('pe-habits-text').value;
+  peState.habits=peState.habitsText.split('\n').map(s=>s.trim()).filter(Boolean);
+  document.getElementById('pe-preview-inner').innerHTML=renderProfileCardHtml(peState);
+}
+
 function peSync(){
-  // 폼에서 peState 동기화
   peState.name=document.getElementById('pe-name').value;
   peState.codename=document.getElementById('pe-codename').value;
   peState.cls=document.querySelector('input[name="pe-cls"]:checked')?.value||'';
@@ -1746,7 +1809,15 @@ function peSync(){
   peState.features=document.getElementById('pe-features').value;
   peState.settings=document.getElementById('pe-settings').value;
   peState.situation=document.getElementById('pe-situation').value;
-  // 미리보기 렌더
+  peState.habitsText=document.getElementById('pe-habits-text').value;
+  peState.habits=peState.habitsText.split('\n').map(s=>s.trim()).filter(Boolean);
+  peState.labels={
+    personality:document.getElementById('pe-label-personality').value||'Personality',
+    features:document.getElementById('pe-label-features').value||'Features',
+    settings:document.getElementById('pe-label-settings').value||'Background',
+    situation:document.getElementById('pe-label-situation').value||'Current Situation',
+    habits:document.getElementById('pe-label-habits').value||'Habits',
+  };
   document.getElementById('pe-preview-inner').innerHTML=renderProfileCardHtml(peState);
 }
 
@@ -1770,7 +1841,7 @@ function renderProfileCardHtml(p){
   const ac=p.accent||'#c9a96e';
   const acLight=ac+'22';
   const acBorder=ac+'40';
-  // 줄바꿈 처리: esc 후 \n → <br>
+  const lb=p.labels||{};
   const escNl=(s)=>esc(s||'').replace(/\n/g,'<br>');
 
   const imgHtml=p.img
@@ -1797,7 +1868,7 @@ function renderProfileCardHtml(p){
   const habitsHtml=habitsItems.length?`
     <div>
       <div class="pcard-sec-label" style="color:${ac}">
-        Habits
+        ${esc(lb.habits||'Habits')}
         <span style="flex:1;height:1px;display:block;background:linear-gradient(90deg,${ac},transparent);opacity:.22;"></span>
       </div>
       <ul class="pcard-habits">
@@ -1821,16 +1892,12 @@ function renderProfileCardHtml(p){
         ${dislikesHtml?`<div><div class="pcard-tag-label">DISLIKES</div><div class="pcard-tags">${dislikesHtml}</div></div>`:''}
       </div>
       <div class="pcard-right">
-        ${mkSec('Personality',p.personality)}
-        ${mkSec('Features',p.features)}
-        ${mkSec('Background',p.settings)}
-        ${mkSec('Current Situation',p.situation,true)}
+        ${mkSec(lb.personality||'Personality',p.personality)}
+        ${mkSec(lb.features||'Features',p.features)}
+        ${mkSec(lb.settings||'Background',p.settings)}
+        ${mkSec(lb.situation||'Current Situation',p.situation,true)}
         ${habitsHtml}
       </div>
-    </div>
-    <div class="pcard-footer">
-      <div class="pcard-footer-name">${esc(p.name||'—')}</div>
-      <div class="pcard-footer-code">Character Profile</div>
     </div>
   </div>`;
 }
