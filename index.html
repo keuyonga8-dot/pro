@@ -582,7 +582,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v68</span>
+      <span class="vbadge">v69</span>
       <button class="hbtn vonly" onclick="openTheme()">🎨</button>
       <button class="hbtn vonly" onclick="openCardStyle()">⊞</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
@@ -1185,22 +1185,22 @@ function saveImgPos(){
   if(imgPosGalIdx>=0){
     if(!cat.galPos)cat.galPos={};
     cat.galPos[imgPosGalIdx]={x:imgPosX,y:imgPosY,size:imgPosSize};
-    // galPos도 별도 경로에 저장
     if(currentUser){
       fbDB.ref('users/'+currentUser.uid+'/imgpos/'+imgPosCatId+'/galPos/'+imgPosGalIdx)
         .set({x:imgPosX,y:imgPosY,size:imgPosSize});
     }
+    closeImgPos();
+    renderDetail(imgPosCatId); // ← 갤러리 케이스 renderDetail 호출
   } else {
     cat.imgPos={x:imgPosX,y:imgPosY,size:imgPosSize};
-    // imgPos를 별도 경로에 저장 → data 콜백에 덮어쓰이지 않음
     if(currentUser){
       fbDB.ref('users/'+currentUser.uid+'/imgpos/'+imgPosCatId+'/pos')
         .set({x:imgPosX,y:imgPosY,size:imgPosSize});
     }
+    closeImgPos();
+    renderOverview(); // 카드 썸네일 즉시 반영
+    if(selId===imgPosCatId)renderDetail(imgPosCatId);
   }
-  closeImgPos();
-  renderOverview();
-  if(selId===imgPosCatId)renderDetail(imgPosCatId);
 }
 
 function closeImgPos(){
@@ -1494,7 +1494,10 @@ function renderDetail(id){
     <div class="gallery">
       ${gallery.map((src,gi)=>{
         const gpos=(cat.galPos&&cat.galPos[gi])||{x:50,y:50,size:100};
-        const gst=`object-fit:cover;object-position:${gpos.x}% ${gpos.y}%;`;
+        const gsz=gpos.size||100;
+        const gst=gsz>100
+          ?`object-fit:cover;width:${gsz}%;height:${gsz}%;position:absolute;left:${-(gsz-100)*gpos.x/100}%;top:${-(gsz-100)*gpos.y/100}%;`
+          :`object-fit:cover;width:100%;height:100%;object-position:${gpos.x}% ${gpos.y}%;`;
         return `<div class="gimgwrap" data-gi="${gi}" onclick="openLbox('${src.replace(/'/g,"\\'")}')">
           <img src="${src}" alt="" style="${gst}">
           ${IS_VIEW?'':`<button class="gimgdel" onclick="event.stopPropagation();delGalImg('${cat.id}',${gi})">✕</button>
