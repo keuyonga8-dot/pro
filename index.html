@@ -441,6 +441,7 @@ body.viewer .profile-edit-btn,
 body.viewer .hbtn:not(.vonly){display:none !important;}
 body.viewer.showpair .pairsec{display:block !important;}
 body.viewer.hide-style [data-tab="style"]{display:none !important;}
+body.viewer.hide-style #mtab-style{display:none !important;}
 
 .card-imgpos-btn{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,.85);border:none;font-size:14px;cursor:pointer;color:var(--cs);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;z-index:3;}
 .ovcard:hover .card-imgpos-btn{opacity:1;}
@@ -455,11 +456,12 @@ body.viewer.hide-style [data-tab="style"]{display:none !important;}
 .profile-empty{padding:20px 0;font-size:12px;color:var(--dim);}
 
 /* 프로필 카드 렌더 (뷰어/상세 공용) */
-.pcard{display:flex;font-family:'Noto Sans KR',sans-serif;background:#faf7f2;border:1px solid #e0d8cc;border-radius:3px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.1);}
-.pcard-left{width:200px;flex-shrink:0;padding:20px 16px;border-right:1px solid #e8e0d4;display:flex;flex-direction:column;gap:12px;background:#f4f0e8;}
-.pcard-img{width:100%;aspect-ratio:3/4;background:#e8e0d4;border:1px solid #d8cfc4;border-radius:2px;overflow:hidden;position:relative;}
+.pcard{display:flex;flex-direction:column;font-family:'Noto Sans KR',sans-serif;background:#faf7f2;border:1px solid #e0d8cc;border-radius:3px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.1);}
+.pcard-left{width:100%;padding:18px 18px 12px;border-bottom:1px solid #e8e0d4;display:flex;gap:16px;background:#f4f0e8;align-items:flex-start;}
+.pcard-img{width:120px;flex-shrink:0;aspect-ratio:3/4;background:#e8e0d4;border:1px solid #d8cfc4;border-radius:2px;overflow:hidden;position:relative;}
 .pcard-img img{width:100%;height:100%;object-fit:cover;}
 .pcard-img-empty{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#c0b4a8;font-size:11px;}
+.pcard-left-meta{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;padding-top:2px;}
 .pcard-name{font-size:18px;font-weight:600;color:#1e1610;line-height:1.2;letter-spacing:.01em;}
 .pcard-codename{font-size:9px;letter-spacing:.18em;text-transform:uppercase;margin-top:3px;opacity:.85;}
 .pcard-divider{height:1px;opacity:.3;}
@@ -469,7 +471,7 @@ body.viewer.hide-style [data-tab="style"]{display:none !important;}
 .pcard-tag.dis{background:rgba(184,80,80,.07);border-color:rgba(184,80,80,.2);color:#a05050;}
 .pcard-class{font-size:10.5px;font-weight:600;margin-bottom:3px;}
 .pcard-class-desc{font-size:11px;line-height:1.65;color:#6a5a48;}
-.pcard-right{flex:1;padding:20px 22px;display:flex;flex-direction:column;gap:14px;overflow:hidden;}
+.pcard-right{padding:16px 18px;display:flex;flex-direction:column;gap:14px;}
 .pcard-sec-label{font-size:7.5px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
 .pcard-sec-label::after{content:'';flex:1;height:1px;opacity:.22;}
 .pcard-sec-text{font-size:11.5px;line-height:1.85;color:#5a4e42;}
@@ -647,6 +649,14 @@ body.viewer.hide-style [data-tab="style"]{display:none !important;}
 <div class="sharepop" id="sharepop" onmousedown="if(event.target===this)closeSharePop()">
   <div class="sharebox">
     <div class="sharetitle">🔗 공유 링크 <button class="shareclose" onclick="closeSharePop()">×</button></div>
+    <div class="sharerow">
+      <div class="sharelabel">🔑 짧은 링크 슬러그</div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input class="sharelink" id="slug-input" placeholder="예: milk-chars (영문/숫자/-만)" style="font-family:inherit;font-size:12px;" oninput="onSlugInput()">
+        <button class="sharecpbtn" id="slug-savebtn" onclick="saveSlug()">저장</button>
+      </div>
+      <div id="slug-status" style="font-size:10px;margin-top:3px;color:var(--muted)"></div>
+    </div>
     <div class="sharerow"><div class="sharelabel">📋 Pair 숨김</div><div class="sharewrap"><input class="sharelink" id="sharelink1" readonly><button class="sharecpbtn" id="sharecpbtn1" onclick="cpShareLink(1)">복사</button></div></div>
     <div class="sharerow"><div class="sharelabel">💘 Pair 포함</div><div class="sharewrap"><input class="sharelink" id="sharelink2" readonly><button class="sharecpbtn" id="sharecpbtn2" onclick="cpShareLink(2)">복사</button></div></div>
     <div style="font-size:11px;color:var(--dim)">테마/카드스타일은 Firebase로 자동 반영돼요!</div>
@@ -909,8 +919,9 @@ body.viewer.hide-style [data-tab="style"]{display:none !important;}
 <script>
 const FB={apiKey:"AIzaSyA5vlK5hwpfq0SCyn7HBezj0DpqmAtC65Y",authDomain:"character-prompt.firebaseapp.com",databaseURL:"https://character-prompt-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"character-prompt",storageBucket:"character-prompt.firebasestorage.app",messagingSenderId:"1078856893225",appId:"1:1078856893225:web:5c389bdd7ff151d7fead38"};
 const params=new URLSearchParams(location.search);
-const IS_VIEW=params.has('view');
-const VIEW_UID=params.get('uid')||'';
+const IS_VIEW=params.has('view')||params.has('v');
+const VIEW_SLUG=params.get('v')||''; // 슬러그 방식
+const VIEW_UID=params.get('uid')||''; // 기존 방식 (하위 호환)
 const PAIR_KEY=params.get('pair')||'';
 
 let fbDB=null,fbAuth=null,currentUser=null;
@@ -944,7 +955,16 @@ function onAuth(user){
     document.body.classList.add('viewer');
     if(PAIR_KEY) document.body.classList.add('showpair');
     if(params.get('style')==='0') document.body.classList.add('hide-style');
-    listenData(VIEW_UID);
+    if(VIEW_SLUG){
+      // 슬러그 → UID 조회
+      fbDB.ref('slugs/'+VIEW_SLUG).once('value',snap=>{
+        const uid=snap.val();
+        if(uid) listenData(uid);
+        else document.getElementById('app').innerHTML='<div style="padding:40px;text-align:center;color:#999">링크를 찾을 수 없어요.</div>';
+      });
+    } else {
+      listenData(VIEW_UID);
+    }
     return;
   }
   if(user){
@@ -1668,23 +1688,91 @@ function updateStyleShareBtn(shared){const btn=document.getElementById('stylesha
 
 // ── SHARE ──
 function simpleHash(s){let h=0;for(let i=0;i<s.length;i++)h=(Math.imul(31,h)+s.charCodeAt(i))|0;return String(h);}
+
+let _shareUid='';
 function openShareSettings(){
-  const uid=currentUser.uid;
-  const newPw=prompt('뷰어 비밀번호\n(빈칸 = 비밀번호 없음)','');if(newPw===null)return;
-  localStorage.setItem('tv_pw_'+uid,newPw.trim()===''?'NO_PW':simpleHash(newPw.trim()));
-  const newPairKey=prompt('Pair 공개 키',localStorage.getItem('tv_pairkey_'+uid)||'secret');
-  if(newPairKey!==null&&newPairKey.trim())localStorage.setItem('tv_pairkey_'+uid,newPairKey.trim());
+  _shareUid=currentUser.uid;
+  // 현재 저장된 슬러그 불러오기
+  fbDB.ref('users/'+_shareUid+'/slug').once('value',snap=>{
+    const slug=snap.val()||'';
+    document.getElementById('slug-input').value=slug;
+    document.getElementById('slug-status').textContent=slug?`현재: ${location.origin+location.pathname}?v=${slug}`:'슬러그를 설정하면 짧은 링크가 생성돼요';
+    _buildShareLinks(slug);
+  });
+  document.getElementById('sharepop').classList.add('on');
+}
+
+function _buildShareLinks(slug){
+  const uid=_shareUid;
   const storedHash=localStorage.getItem('tv_pw_'+uid)||'NO_PW';
   const pwParam=storedHash!=='NO_PW'?`&pw=${storedHash}`:'';
   const pairKey=localStorage.getItem('tv_pairkey_'+uid)||'secret';
   const styleShared=localStorage.getItem('tv_style_shared')!=='false';
   const styleParam=styleShared?'':'&style=0';
   const base=location.origin+location.pathname;
-  document.getElementById('sharelink1').value=`${base}?view=1&uid=${uid}${pwParam}${styleParam}`;
-  document.getElementById('sharelink2').value=`${base}?view=1&uid=${uid}${pwParam}&pair=${pairKey}${styleParam}`;
+  if(slug){
+    document.getElementById('sharelink1').value=`${base}?v=${slug}${pwParam}${styleParam}`;
+    document.getElementById('sharelink2').value=`${base}?v=${slug}${pwParam}&pair=${pairKey}${styleParam}`;
+  } else {
+    document.getElementById('sharelink1').value=`${base}?view=1&uid=${uid}${pwParam}${styleParam}`;
+    document.getElementById('sharelink2').value=`${base}?view=1&uid=${uid}${pwParam}&pair=${pairKey}${styleParam}`;
+  }
   ['1','2'].forEach(n=>{document.getElementById('sharecpbtn'+n).textContent='복사';document.getElementById('sharecpbtn'+n).classList.remove('done');});
-  document.getElementById('sharepop').classList.add('on');
 }
+
+let _slugCheckTimer=null;
+function onSlugInput(){
+  const val=document.getElementById('slug-input').value.trim();
+  const status=document.getElementById('slug-status');
+  if(!val){status.textContent='';return;}
+  if(!/^[a-zA-Z0-9-]{2,30}$/.test(val)){
+    status.style.color='var(--cp)';status.textContent='영문/숫자/-만 사용 가능, 2~30자';return;
+  }
+  status.style.color='var(--muted)';status.textContent='확인 중...';
+  clearTimeout(_slugCheckTimer);
+  _slugCheckTimer=setTimeout(()=>{
+    fbDB.ref('slugs/'+val).once('value',snap=>{
+      const existing=snap.val();
+      if(!existing||existing===_shareUid){
+        status.style.color='var(--cm)';status.textContent=`✓ 사용 가능: ${location.origin+location.pathname}?v=${val}`;
+      } else {
+        status.style.color='var(--cp)';status.textContent='이미 사용 중인 슬러그예요';
+      }
+    });
+  },500);
+}
+
+async function saveSlug(){
+  const val=document.getElementById('slug-input').value.trim();
+  const status=document.getElementById('slug-status');
+  if(!val){
+    // 슬러그 제거
+    const oldSnap=await fbDB.ref('users/'+_shareUid+'/slug').once('value');
+    const old=oldSnap.val();
+    if(old) await fbDB.ref('slugs/'+old).remove();
+    await fbDB.ref('users/'+_shareUid+'/slug').remove();
+    status.style.color='var(--muted)';status.textContent='슬러그가 제거됐어요';
+    _buildShareLinks('');return;
+  }
+  if(!/^[a-zA-Z0-9-]{2,30}$/.test(val)){return;}
+  const snap=await fbDB.ref('slugs/'+val).once('value');
+  const existing=snap.val();
+  if(existing&&existing!==_shareUid){
+    status.style.color='var(--cp)';status.textContent='이미 사용 중인 슬러그예요';return;
+  }
+  // 기존 슬러그 제거
+  const oldSnap=await fbDB.ref('users/'+_shareUid+'/slug').once('value');
+  const old=oldSnap.val();
+  if(old&&old!==val) await fbDB.ref('slugs/'+old).remove();
+  // 새 슬러그 저장
+  await fbDB.ref('slugs/'+val).set(_shareUid);
+  await fbDB.ref('users/'+_shareUid+'/slug').set(val);
+  status.style.color='var(--cm)';status.textContent=`✓ 저장됨! ${location.origin+location.pathname}?v=${val}`;
+  document.getElementById('slug-savebtn').textContent='✓ 저장됨';
+  setTimeout(()=>document.getElementById('slug-savebtn').textContent='저장',2000);
+  _buildShareLinks(val);
+}
+
 function closeSharePop(){document.getElementById('sharepop').classList.remove('on');}
 function cpShareLink(n){const val=document.getElementById('sharelink'+n).value;const btn=document.getElementById('sharecpbtn'+n);cpText(val,'');btn.textContent='✓ 복사됨';btn.classList.add('done');setTimeout(()=>{btn.textContent='복사';btn.classList.remove('done');},2000);}
 
@@ -2193,9 +2281,9 @@ function renderProfileCardHtml(p){
 
   return `<div class="pcard" style="--pc-ac:${ac}">
     <div style="height:3px;background:linear-gradient(90deg,${ac} 0%,${ac}44 65%,transparent 100%)"></div>
-    <div style="display:flex;min-height:400px;">
-      <div class="pcard-left">
-        <div class="pcard-img">${imgHtml}</div>
+    <div class="pcard-left">
+      <div class="pcard-img">${imgHtml}</div>
+      <div class="pcard-left-meta">
         <div>
           <div class="pcard-name">${esc(p.name||'이름')}</div>
           ${codename}
@@ -2206,13 +2294,13 @@ function renderProfileCardHtml(p){
         ${likesHtml?`<div><div class="pcard-tag-label">LIKES</div><div class="pcard-tags">${likesHtml}</div></div>`:''}
         ${dislikesHtml?`<div><div class="pcard-tag-label">DISLIKES</div><div class="pcard-tags">${dislikesHtml}</div></div>`:''}
       </div>
-      <div class="pcard-right">
-        ${mkSec(lb.personality||'Personality',p.personality)}
-        ${mkSec(lb.features||'Features',p.features)}
-        ${mkSec(lb.settings||'Background',p.settings)}
-        ${mkSec(lb.situation||'Current Situation',p.situation,true)}
-        ${habitsHtml}
-      </div>
+    </div>
+    <div class="pcard-right">
+      ${mkSec(lb.personality||'Personality',p.personality)}
+      ${mkSec(lb.features||'Features',p.features)}
+      ${mkSec(lb.settings||'Background',p.settings)}
+      ${mkSec(lb.situation||'Current Situation',p.situation,true)}
+      ${habitsHtml}
     </div>
   </div>`;
 }
