@@ -582,7 +582,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v66</span>
+      <span class="vbadge">v67</span>
       <button class="hbtn vonly" onclick="openTheme()">🎨</button>
       <button class="hbtn vonly" onclick="openCardStyle()">⊞</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
@@ -989,9 +989,23 @@ let fbGroups={artist:[],style:[]};// Firebase에서 받은 그룹 캐시
 function listenData(uid){
   fbDB.ref('users/'+uid+'/data').on('value',snap=>{
     const v=snap.val()||{};
+    // imgPos/galPos/pairTitle 등 로컬 수정값 보존하면서 병합
+    const mergeWithLocal=(newArr,oldArr)=>{
+      if(!newArr)return[];
+      return newArr.map(newCat=>{
+        const old=oldArr.find(o=>o.id===newCat.id);
+        if(!old)return newCat;
+        // 로컬에서 방금 수정한 위치/크기 데이터 유지
+        if(old.imgPos)newCat.imgPos=old.imgPos;
+        if(old.galPos)newCat.galPos=old.galPos;
+        return newCat;
+      });
+    };
+    const newArtist=v.artist?Object.values(v.artist):[];
+    const newStyle=v.style?Object.values(v.style):[];
     cache={
-      artist:v.artist?Object.values(v.artist):[],
-      style:v.style?Object.values(v.style):[]
+      artist:mergeWithLocal(newArtist,cache.artist||[]),
+      style:mergeWithLocal(newStyle,cache.style||[])
     };
     renderSidebar();renderOverview();
     if(selId)renderDetail(selId);
