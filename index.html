@@ -218,6 +218,8 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;}
 .gal-tag-btn{position:absolute;bottom:4px;right:28px;width:20px;height:20px;border-radius:5px;background:rgba(255,255,255,.85);border:none;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;color:var(--cs);z-index:2;}
 .gimgwrap:hover .gal-tag-btn{opacity:1;}
+.gimgwrap.has-pair-tag .gal-tag-btn{opacity:.9;}
+.gal-pair-label{position:absolute;bottom:4px;left:6px;background:rgba(192,88,136,.75);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;pointer-events:none;z-index:2;max-width:calc(100% - 60px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;backdrop-filter:blur(2px);}
 .gimgwrap{aspect-ratio:1;border-radius:8px;overflow:hidden;background:linear-gradient(135deg,var(--sky),var(--pink));position:relative;cursor:pointer;}
 .gimgwrap img{width:100%;height:100%;object-fit:cover;transition:transform .2s;}
 .gimgwrap:hover img{transform:scale(1.04);}
@@ -579,17 +581,17 @@ body.viewer.hide-style #mtab-style{display:none !important;}
 .dday-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:box-shadow .18s,transform .18s;padding:14px 16px 12px;}
 .dday-card:hover{box-shadow:0 6px 20px rgba(160,140,200,.18);transform:translateY(-2px);}
 .dday-card-avatars{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;}
-.dday-card-av{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--sky),var(--pink));display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;border:2px solid var(--border);flex-shrink:0;}
+.dday-card-av{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--sky),var(--pink));display:flex;align-items:center;justify-content:center;font-size:26px;overflow:hidden;border:2px solid var(--border);flex-shrink:0;}
 .dday-card-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .dday-card-heart{font-size:13px;color:var(--cp);opacity:.7;}
-.dday-card-pairav{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--sky));display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;border:2px solid var(--pink2);flex-shrink:0;}
+.dday-card-pairav{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--sky));display:flex;align-items:center;justify-content:center;font-size:26px;overflow:hidden;border:2px solid var(--pink2);flex-shrink:0;}
 .dday-card-pairav img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .dday-card-names{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px;}
 .dday-card-catname{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px;}
 .dday-card-sep{font-size:10px;color:var(--dim);}
 .dday-card-pairname{font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px;}
 .dday-card-divider{height:1px;background:var(--border);margin:0 -2px 8px;}
-.dday-card-badge{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--cp);text-align:center;display:block;}
+.dday-card-badge{font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:var(--cp);text-align:center;display:block;}
 
 </style>
 </head>
@@ -617,12 +619,12 @@ body.viewer.hide-style #mtab-style{display:none !important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v75</span>
+      <span class="vbadge">v76</span>
       <button class="hbtn vonly" onclick="openStylePanel()">🎨 스타일</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">공유</button>
       <button class="hbtn" id="groupbtn" onclick="openGroupModal()" style="display:none">그룹</button>
-      <div class="hdiv" id="signout-div" style="display:none;margin-left:6px;"></div>
+      <div class="hdiv" id="signout-div" style="display:none;margin-left:12px;margin-right:4px;"></div>
       <button class="hbtn" id="signoutbtn" onclick="signOut()" style="display:none;padding:5px 8px;border-color:transparent;background:none;color:var(--muted);" title="로그아웃" onmouseover="this.style.color='var(--cp)';this.style.borderColor='var(--pink2)';" onmouseout="this.style.color='var(--muted)';this.style.borderColor='transparent';">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       </button>
@@ -1596,14 +1598,14 @@ function renderDetail(id){
       ?`object-fit:cover;width:${gsz}%;height:${gsz}%;position:absolute;left:${-(gsz-100)*gpos.x/100}%;top:${-(gsz-100)*gpos.y/100}%;`
       :`object-fit:cover;width:100%;height:100%;object-position:${gpos.x}% ${gpos.y}%;`;
     const pairTag=(cat.galPairTag&&cat.galPairTag[gi])||'';
-    return `<div class="gimgwrap" data-gi="${gi}" data-pairtag="${pairTag}" onclick="if(!this._wasDragging)openLbox('${src.replace(/'/g,"\\'")}')">
+    return `<div class="gimgwrap${pairTag?' has-pair-tag':''}" data-gi="${gi}" data-pairtag="${pairTag}" onclick="if(!this._wasDragging)openLbox('${src.replace(/'/g,"\\'")}')">
       <img src="${src}" alt="" style="${gst}">
       ${IS_VIEW?'':`
       <button class="gimgdel" onclick="event.stopPropagation();delGalImg('${cat.id}',${gi})">✕</button>
       <button class="gimgpos-btn" onclick="event.stopPropagation();openGalImgPos('${cat.id}',${gi})" title="위치/크기">⤢</button>
       <button class="gal-tag-btn" onclick="event.stopPropagation();setGalPairTag('${cat.id}',${gi})" title="페어 지정">🏷</button>
-      <div class="gimg-drag-handle" title="드래그로 순서 변경">⠿</div>
-      ${pairTag?`<div style="position:absolute;bottom:4px;left:26px;background:rgba(0,0,0,.5);color:#fff;font-size:8px;padding:1px 5px;border-radius:4px;pointer-events:none;">${esc(pairTag)}</div>`:''}`}
+      <div class="gimg-drag-handle" title="드래그로 순서 변경">⠿</div>`}
+      ${pairTag?`<div class="gal-pair-label">${esc(pairTag)}</div>`:''}
     </div>`;
   }).join('');
 
