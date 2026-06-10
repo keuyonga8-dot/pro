@@ -403,7 +403,7 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .emoji-opt:hover{background:var(--sky);}
 
 /* STYLE PANEL (테마+카드 통합) */
-.popup{position:fixed;inset:0;z-index:9998;background:rgba(210,200,230,.35);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;overflow-y:auto;padding:20px 0;}
+.popup{position:fixed;inset:0;z-index:9998;background:rgba(210,200,230,.35);backdrop-filter:blur(8px);display:flex;align-items:flex-start;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;overflow-y:auto;padding:20px 0;}
 .popup.on{opacity:1;pointer-events:all;}
 .popbox{background:var(--white);border-radius:18px;padding:24px;width:440px;max-width:92vw;display:flex;flex-direction:column;gap:14px;border:1px solid var(--border);box-shadow:0 16px 48px rgba(150,130,190,.2);}
 .pop-title{font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:space-between;}
@@ -616,7 +616,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v79</span>
+      <span class="vbadge">v80</span>
       <button class="hbtn vonly" onclick="openStylePanel()">🎨 스타일</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">공유</button>
