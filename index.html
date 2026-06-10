@@ -341,8 +341,8 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .mcopybtn{display:flex;align-items:center;gap:6px;padding:9px 18px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--sky2),var(--pink2));font-family:inherit;font-size:12px;font-weight:700;color:#607098;cursor:pointer;white-space:nowrap;}
 
 /* LIGHTBOX */
-.lbox{position:fixed;inset:0;background:rgba(40,30,60,.7);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s;}
-.lbox.on{display:flex;opacity:1;pointer-events:all;}
+.lbox{position:fixed;inset:0;background:rgba(40,30,60,.7);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s;}
+.lbox.on{opacity:1;pointer-events:all;}
 .lbox img{max-width:90vw;max-height:90vh;border-radius:12px;}
 .lboxclose{position:absolute;top:20px;right:24px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:24px;cursor:pointer;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;}
 
@@ -351,8 +351,8 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
 
 /* MODAL */
-.overlay{position:fixed;inset:0;background:rgba(210,200,230,.35);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s;}
-.overlay.on{display:flex;opacity:1;pointer-events:all;}
+.overlay{position:fixed;inset:0;background:rgba(210,200,230,.35);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s;}
+.overlay.on{opacity:1;pointer-events:all;}
 .modal{background:var(--white);border:1px solid var(--border);border-radius:16px;width:480px;max-width:92vw;max-height:88vh;overflow-y:auto;transform:scale(.95) translateY(10px);transition:transform .2s;box-shadow:0 14px 44px rgba(150,130,190,.18);}
 .overlay.on .modal{transform:scale(1) translateY(0);}
 .mhead{display:flex;align-items:center;justify-content:space-between;padding:17px 20px 15px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,rgba(196,224,255,.25),rgba(248,204,228,.2));border-radius:16px 16px 0 0;}
@@ -379,8 +379,8 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .pavhint strong{color:var(--cs);cursor:pointer;}
 
 /* SHARE */
-.sharepop{position:fixed;inset:0;z-index:9998;background:rgba(210,200,230,.45);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
-.sharepop.on{display:flex;opacity:1;pointer-events:all;}
+.sharepop{position:fixed;inset:0;z-index:9998;background:rgba(210,200,230,.45);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.sharepop.on{opacity:1;pointer-events:all;}
 .sharebox{background:var(--white);border-radius:18px;padding:28px 26px;width:480px;max-width:92vw;display:flex;flex-direction:column;gap:16px;border:1px solid var(--border);box-shadow:0 16px 48px rgba(150,130,190,.2);}
 .sharetitle{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;}
 .shareclose{margin-left:auto;background:none;border:none;font-size:20px;color:var(--dim);cursor:pointer;}
@@ -497,8 +497,8 @@ body.viewer.hide-style #mtab-style{display:none !important;}
 .pcard-footer-code{font-size:8px;color:#cec4b8;letter-spacing:.14em;text-transform:uppercase;}
 
 /* 프로필 에디터 팝업 */
-.profile-popup{position:fixed;inset:0;z-index:9999;background:rgba(210,200,230,.45);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
-.profile-popup.on{display:flex;opacity:1;pointer-events:all;}
+.profile-popup{position:fixed;inset:0;z-index:9999;background:rgba(210,200,230,.45);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.profile-popup.on{opacity:1;pointer-events:all;}
 .profile-editor{background:var(--white);border-radius:20px;width:min(98vw,1200px);height:min(96vh,860px);display:flex;flex-direction:column;border:1px solid var(--border);box-shadow:0 20px 60px rgba(140,120,180,.2);overflow:hidden;}
 .pe-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,rgba(196,224,255,.2),rgba(248,204,228,.15));flex-shrink:0;}
 .pe-title{font-size:14px;font-weight:700;color:var(--cs);}
@@ -597,7 +597,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
 <div class="loginscreen" id="loginscreen">
   <div class="loginbox">
     <div class="loginlogo"></div>
-    <div class="logintitle">Tag</div>
+    <div class="logintitle">TagVault</div>
     <div class="loginsub">구글 계정으로 로그인하면<br>나만의 태그 저장소를 만들 수 있어요</div>
     <button class="googlebtn" onclick="signIn()">
       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="">
@@ -616,7 +616,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v87</span>
+      <span class="vbadge">v88</span>
       <button class="hbtn vonly" onclick="openStylePanel()">🎨 스타일</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">공유</button>
@@ -1045,20 +1045,7 @@ function onAuth(user){
   }
 }
 
-function signIn(){
-  if(!fbAuth){
-    // Firebase 아직 로드 중 - 잠시 후 재시도
-    const btn=document.querySelector('.googlebtn');
-    if(btn){btn.textContent='로딩 중...';btn.disabled=true;}
-    setTimeout(()=>{
-      if(btn){btn.innerHTML='<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" style="width:20px;height:20px;"> Google로 로그인';btn.disabled=false;}
-      if(fbAuth)signIn();
-    },2000);
-    return;
-  }
-  const p=new firebase.auth.GoogleAuthProvider();
-  fbAuth.signInWithPopup(p).catch(e=>alert('로그인 실패: '+e.message));
-}
+function signIn(){const p=new firebase.auth.GoogleAuthProvider();fbAuth.signInWithPopup(p).catch(e=>alert('로그인 실패: '+e.message));}
 function signOut(){fbAuth.signOut();}
 
 let fbGroups={artist:[],style:[]};// Firebase에서 받은 그룹 캐시
