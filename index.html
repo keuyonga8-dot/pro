@@ -1586,7 +1586,7 @@ function renderDetail(id){
         <div class="entry-sec-row">
           <span class="entry-sec-label" ${IS_VIEW?'':`ondblclick="editEntrySecLabel('${cat.id}',${idx},${si},this)"`} title="${IS_VIEW?'':'더블클릭으로 수정'}">${esc(s.label||'기타')}</span>
           <div class="entry-sec-tags">${tags.map((t,ti)=>`<span class="chip ${ks[ti%6]}" onclick="cpTag('${esc(t)}')">${esc(t)}</span>`).join('')}</div>
-          ${tags.length?`<button class="entry-sec-copy" onclick="cpTagArr(${JSON.stringify(tags)})">복사</button>`:''}
+          ${tags.length?`<button class="entry-sec-copy" onclick="cpTagArr('${JSON.stringify(tags).replace(/'/g,"\\'")}')">복사</button>`:''}
         </div>
       </div>`;
     }).join('');
@@ -1603,7 +1603,7 @@ function renderDetail(id){
           </div>
         </div>
         ${secsHtml}
-        ${allEntryTags.length?`<button class="entry-allcopy" onclick="cpTagArr(${JSON.stringify(allEntryTags)})">전체 복사</button>`:''}
+        ${allEntryTags.length?`<button class="entry-allcopy" onclick="cpTagArr('${JSON.stringify(allEntryTags).replace(/'/g,"\\'")}')">전체 복사</button>`:''}
         ${!IS_VIEW?`<button class="entry-sec-add" onclick="addEntrySection('${cat.id}',${idx})">+ 섹션 추가</button>`:''}
       </div>
     </div>`;
@@ -1640,7 +1640,7 @@ function renderDetail(id){
             <div class="pc2-sec-row">
               <span class="pc2-sec-label">${label}</span>
               <div class="pc2-tags">${tags.map((t,i)=>`<span class="chip ${ks[i%6]}" onclick="cpTag('${esc(t)}')">${esc(t)}</span>`).join('')}</div>
-              <button class="pc2-copy" onclick="cpTagArr(${JSON.stringify(tags)})">복사</button>
+              <button class="pc2-copy" onclick="cpTagArr('${JSON.stringify(tags).replace(/'/g,"\\'")}')">복사</button>
             </div>
           </div>`:'';
         return `<div class="paircard2" data-pi="${pi}">
@@ -1662,7 +1662,7 @@ function renderDetail(id){
             ${secHtml('기타',tagsEtc,'etc')}
           </div>
           <div class="pc2-allacts">
-            ${allTags.length?`<button class="pc2-allcopy" onclick="cpTagArr(${JSON.stringify(allTags)})">전체 복사</button>`:''}
+            ${allTags.length?`<button class="pc2-allcopy" onclick="cpTagArr('${JSON.stringify(allTags).replace(/'/g,"\\'")}')">전체 복사</button>`:''}
           </div>`:''}
         </div>`;
       }).join('')}
@@ -2153,7 +2153,7 @@ function savePair(){
   pairEditIdx=-1;saveDB();closePairModal();if(selId)renderDetail(selId);
 }
 function delPairCat(catId,pi){if(IS_VIEW||!confirm('삭제할까요?'))return;const cat=(cache[tab]||[]).find(c=>c.id===catId);if(!cat)return;cat.pair.splice(pi,1);saveDB();renderDetail(catId);}
-function cpTagArr(arr){cpText(arr.join(', '),`✓ ${arr.length}개 복사됨`);}
+function cpTagArr(arr){if(typeof arr==='string')arr=JSON.parse(arr);cpText(arr.join(', '),`✓ ${arr.length}개 복사됨`);}
 function cpPairCat(catId,pi){const cat=(cache[tab]||[]).find(c=>c.id===catId);if(!cat)return;const p=(cat.pair||[])[pi];if(!p)return;const all=[...(p.tagsLook||[]),...(p.tagsOutfit||[]),...(p.tagsEtc||p.tags||[])];cpText(all.join(', '),`💘 ${p.name} 복사됨`);}
 
 // ── TAG EDIT ──
