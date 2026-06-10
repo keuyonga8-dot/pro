@@ -575,20 +575,21 @@ body.viewer.hide-style #mtab-style{display:none !important;}
 .dday-empty{padding:40px;text-align:center;color:var(--dim);font-size:12px;}
 
 /* 카드형 */
-.dday-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
-.dday-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:box-shadow .18s,transform .18s;}
+.dday-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+.dday-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:box-shadow .18s,transform .18s;padding:14px 16px 12px;}
 .dday-card:hover{box-shadow:0 6px 20px rgba(160,140,200,.18);transform:translateY(-2px);}
-.dday-card-top{display:flex;align-items:center;gap:12px;padding:14px 14px 10px;}
-.dday-card-av{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--sky),var(--pink));display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;border:2px solid var(--border);flex-shrink:0;}
+.dday-card-avatars{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;}
+.dday-card-av{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--sky),var(--pink));display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;border:2px solid var(--border);flex-shrink:0;}
 .dday-card-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-.dday-card-info{flex:1;min-width:0;}
-.dday-card-catname{font-size:13px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.dday-card-badge{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--cp);}
-.dday-card-divider{height:1px;background:var(--border);margin:0 14px;}
-.dday-card-pair{display:flex;align-items:center;gap:10px;padding:10px 14px 14px;}
-.dday-card-pairav{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--sky));display:flex;align-items:center;justify-content:center;font-size:17px;overflow:hidden;border:1.5px solid var(--pink2);flex-shrink:0;}
+.dday-card-heart{font-size:13px;color:var(--cp);opacity:.7;}
+.dday-card-pairav{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--sky));display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;border:2px solid var(--pink2);flex-shrink:0;}
 .dday-card-pairav img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-.dday-card-pairname{font-size:12px;font-weight:600;color:var(--muted);}
+.dday-card-names{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px;}
+.dday-card-catname{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px;}
+.dday-card-sep{font-size:10px;color:var(--dim);}
+.dday-card-pairname{font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:70px;}
+.dday-card-divider{height:1px;background:var(--border);margin:0 -2px 8px;}
+.dday-card-badge{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--cp);text-align:center;display:block;}
 
 </style>
 </head>
@@ -1802,18 +1803,18 @@ function renderDday(){
 
   document.getElementById('dday-card-view').innerHTML=rows.map(r=>`
     <div class="dday-card" onclick="switchTab('artist');setTimeout(()=>selectCat('${r.cat.id}'),50)">
-      <div class="dday-card-top">
+      <div class="dday-card-avatars">
         <div class="dday-card-av">${r.cat.avatar?`<img src="${r.cat.avatar}" alt="">`:(r.cat.emoji||'🏷️')}</div>
-        <div class="dday-card-info">
-          <div class="dday-card-catname">${esc(r.cat.name)}</div>
-          <div class="dday-card-badge">${esc(r.dplus)}</div>
-        </div>
-      </div>
-      <div class="dday-card-divider"></div>
-      <div class="dday-card-pair">
+        <span class="dday-card-heart">♥</span>
         <div class="dday-card-pairav">${r.pairAvatar?`<img src="${r.pairAvatar}" alt="">`:r.pairEmoji||'💘'}</div>
+      </div>
+      <div class="dday-card-names">
+        <span class="dday-card-catname">${esc(r.cat.name)}</span>
+        <span class="dday-card-sep">×</span>
         <span class="dday-card-pairname">${esc(r.pairName)}</span>
       </div>
+      <div class="dday-card-divider"></div>
+      <span class="dday-card-badge">${esc(r.dplus)}</span>
     </div>`).join('');
 
   document.getElementById('dday-tbody').innerHTML=rows.map(r=>`
