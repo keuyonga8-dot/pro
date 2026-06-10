@@ -466,6 +466,7 @@ body.viewer .entry-drag-handle,
 body.viewer .pair-drag,
 body.viewer .cat-drag,
 body.viewer [data-tab="style"],
+body.viewer [data-tab="dday"],
 body.viewer .profile-edit-btn,
 body.viewer .hbtn:not(.vonly){display:none !important;}
 body.viewer.showpair .pairsec{display:block !important;}
@@ -1015,6 +1016,7 @@ let imgPosCatId=null,imgPosX=50,imgPosY=50,imgPosSize=100,imgPosGalIdx=-1;
 
 // ── FIREBASE ──
 function loadFirebase(){
+  // 세 SDK 병렬 로드 후 모두 완료되면 초기화
   const SDKS=[
     'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
     'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js',
@@ -1054,6 +1056,7 @@ function onAuth(user){
     });
     loadStyleShare();
     updateSbAddBtn();
+    // 로컬 캐시 즉시 렌더링 (Firebase 응답 전에 빠르게 표시)
     try{
       const lc=localStorage.getItem('tv_cache_'+user.uid);
       const lg=localStorage.getItem('tv_groups_'+user.uid);
@@ -1078,6 +1081,7 @@ function listenData(uid){
       artist:v.artist?Object.values(v.artist):[],
       style:v.style?Object.values(v.style):[]
     };
+    // 로컬 캐시 저장 (다음 로딩 시 즉시 표시)
     try{localStorage.setItem('tv_cache_'+uid,JSON.stringify(cache));}catch(e){}
     renderSidebar();renderOverview();
     if(selId)renderDetail(selId);
@@ -1204,6 +1208,7 @@ function editGalToken(catId,gi){
   const curToken=(cat.galToken&&cat.galToken[gi])||'';
   const curColor=(cat.galTokenColor&&cat.galTokenColor[gi])||'rgba(0,0,0,0.55)';
 
+  // 팝업 만들기
   const pop=document.createElement('div');
   pop.style.cssText='position:fixed;z-index:9999;background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.15);padding:14px;width:240px;font-family:inherit;';
   const btn=document.querySelector(`.gimgwrap[data-gi="${gi}"] .gal-tok-btn`);
@@ -1846,8 +1851,7 @@ function switchTab(t){
   document.getElementById('overview').style.display=isDD?'none':'block';
   document.getElementById('detail').style.display='none';
   document.getElementById('ddayview').classList.toggle('on',isDD);
-  // ▼▼▼ 수정: 뷰어에서도 addbtn/groupbtn만 숨기고 D-day 탭은 허용
-  ['addbtn','groupbtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=(!IS_VIEW&&!isDD)?'flex':'none';});
+  ['addbtn','groupbtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=(isDD||IS_VIEW)?'none':'flex';});
   renderSidebar();
   updateSbAddBtn();
   if(isDD){renderDday();return;}
@@ -1864,6 +1868,7 @@ function setDdayView(mode){
   document.getElementById('dday-card-view').style.display=mode==='card'?'grid':'none';
   document.getElementById('dday-list-view').style.display=mode==='list'?'table':'none';
 }
+
 
 // ── DDAY CARD DRAG ──
 let _ddayDragSrc=null;
@@ -1902,6 +1907,7 @@ function renderDday(){
       rows.push({cat,pairName:p.name,pairAvatar:p.avatar||'',pairEmoji:p.emoji||'',dplus,startDate:p.startDate});
     });
   });
+  // 저장된 순서 적용
   const ddayOrderKey='tv_dday_order_'+tab;
   const savedOrder=JSON.parse(localStorage.getItem(ddayOrderKey)||'[]');
   if(savedOrder.length){
@@ -2279,7 +2285,11 @@ function renderGroupModal(){
   const cats=cache[tab]||[];
   const groupListHtml=groups.length?`<div style="margin-bottom:12px">
     <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">그룹 목록</div>
-    ${groups.map((g,gi)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg);border-radius:8px;border:1px solid var(--border);margin-bottom:5px"><span style="flex:1;font-size:12px;font-weight:600">${esc(g.name)}</span><button onclick="renameGroupInModal(${gi})" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--cs)">✏️</button><button onclick="deleteGroupInModal(${gi})" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--cp)">✕</button></div>`).join('')}
+    ${groups.map((g,gi)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg);border-radius:8px;border:1px solid var(--border);margin-bottom:5px">
+      <span style="flex:1;font-size:12px;font-weight:600">${esc(g.name)}</span>
+      <button onclick="renameGroupInModal(${gi})" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--cs)">✏️</button>
+      <button onclick="deleteGroupInModal(${gi})" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--cp)">✕</button>
+    </div>`).join('')}
     <button onclick="addGroupInModal()" style="width:100%;padding:7px;border:1.5px dashed var(--dim);border-radius:8px;background:none;font-family:inherit;font-size:12px;color:var(--dim);cursor:pointer;margin-top:4px">+ 그룹 추가</button>
   </div>`:`<div style="margin-bottom:12px"><button onclick="addGroupInModal()" style="width:100%;padding:7px;border:1.5px dashed var(--dim);border-radius:8px;background:none;font-family:inherit;font-size:12px;color:var(--dim);cursor:pointer">+ 그룹 추가</button></div>`;
   const catListHtml=`<div>
@@ -2374,6 +2384,7 @@ function fillCatGroupSelect(currentGroupId){
   const sel=document.createElement('select');
   sel.id='catgroup';sel.className='finput';
   sel.innerHTML='<option value="">없음</option>'+groups.map(g=>`<option value="${g.id}" ${g.id===currentGroupId?'selected':''}>${esc(g.name)}</option>`).join('');
+  // 그룹 추가 버튼도 같이 표시
   const row=document.createElement('div');
   row.style.cssText='display:flex;gap:6px;align-items:center;';
   sel.style.flex='1';
@@ -2391,6 +2402,7 @@ function inlineCatGroupAdd(){
   const newG={id:'g'+Date.now(),name:name.trim()};
   groups.push(newG);saveGroups(groups);renderOverview();
   fillCatGroupSelect(newG.id);
+  // 방금 만든 그룹 자동 선택
   setTimeout(()=>{const sel=document.getElementById('catgroup');if(sel)sel.value=newG.id;},50);
 }
 
