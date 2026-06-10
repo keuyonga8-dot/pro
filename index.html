@@ -209,14 +209,22 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .ibtn:hover{background:var(--sky);border-color:var(--sky2);}
 
 /* GALLERY */
-.cgal-section{margin-bottom:16px;}
+.cgal-section{margin-bottom:16px;margin-top:20px;}
 .cgal-label{font-size:10px;font-weight:600;letter-spacing:.04em;color:var(--muted);margin-bottom:8px;padding-left:2px;}
+.gal-filter{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;}
+.gal-ftab{padding:3px 11px;border-radius:20px;border:1px solid var(--border);background:var(--bg);font-family:inherit;font-size:10.5px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .13s;}
+.gal-ftab:hover{border-color:var(--sky2);color:var(--cs);}
+.gal-ftab.on{background:linear-gradient(135deg,rgba(196,224,255,.3),rgba(248,204,228,.25));border-color:var(--sky2);color:var(--cs);}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;}
+.gal-tag-btn{position:absolute;bottom:4px;right:28px;width:20px;height:20px;border-radius:5px;background:rgba(255,255,255,.85);border:none;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;color:var(--cs);z-index:2;}
+.gimgwrap:hover .gal-tag-btn{opacity:1;}
 .gimgwrap{aspect-ratio:1;border-radius:8px;overflow:hidden;background:linear-gradient(135deg,var(--sky),var(--pink));position:relative;cursor:pointer;}
 .gimgwrap img{width:100%;height:100%;object-fit:cover;transition:transform .2s;}
 .gimgwrap:hover img{transform:scale(1.04);}
 .gimgwrap.dragging{opacity:.3;}
 .gimgwrap.drag-over{outline:2px solid var(--sky2);}
+.gimg-drag-handle{position:absolute;bottom:4px;left:4px;width:20px;height:20px;border-radius:5px;background:rgba(255,255,255,.85);border:none;font-size:11px;cursor:grab;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;color:var(--muted);z-index:2;}
+.gimgwrap:hover .gimg-drag-handle{opacity:1;}
 .gimgdel{position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.9);border:none;font-size:11px;cursor:pointer;color:var(--cp);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;}
 .gimgpos-btn{position:absolute;top:4px;left:4px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.9);border:none;font-size:12px;cursor:pointer;color:var(--cs);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;}
 .gimgwrap:hover .gimgdel,.gimgwrap:hover .gimgpos-btn{opacity:1;}
@@ -267,7 +275,7 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .schap:hover{background:rgba(196,224,255,.38);transform:translateY(-1px);}
 
 /* PAIR */
-.pairsec{margin-top:12px;}
+.pairsec{margin-top:12px;margin-bottom:12px;}
 .pairhead{display:flex;align-items:center;justify-content:space-between;padding:7px 0 10px;}
 .pairtitle{font-size:11.5px;font-weight:700;cursor:pointer;background:none;border:none;font-family:inherit;color:var(--text);padding:0;outline:none;}
 .pairtitle:hover{color:var(--cs);}
@@ -390,7 +398,11 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .tag-del-btn{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;padding:0 2px;flex-shrink:0;}
 .tag-del-btn:hover{color:var(--cp);}
 
-/* THEME + CARDSTYLE + IMGPOS POPUPS */
+/* EMOJI PICKER */
+.emoji-opt{font-size:18px;cursor:pointer;padding:3px;border-radius:6px;transition:background .12s;line-height:1;}
+.emoji-opt:hover{background:var(--sky);}
+
+/* STYLE PANEL (테마+카드 통합) */
 .popup{position:fixed;inset:0;z-index:9998;background:rgba(210,200,230,.35);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
 .popup.on{opacity:1;pointer-events:all;}
 .popbox{background:var(--white);border-radius:18px;padding:24px;width:440px;max-width:92vw;display:flex;flex-direction:column;gap:14px;border:1px solid var(--border);box-shadow:0 16px 48px rgba(150,130,190,.2);}
@@ -536,26 +548,48 @@ body.viewer.hide-style #mtab-style{display:none !important;}
 .pe-preview{flex:1;background:#ddd6ca;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:30px 40px;}
 .pe-preview-inner{width:100%;max-width:860px;}
 
-/* D-DAY TAB */
+.dday-view{padding:16px 20px;display:none;}
 .dday-view.on{display:block;}
-.dday-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.dday-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;}
 .dday-title{font-size:14px;font-weight:700;}
+.dday-view-toggle{display:flex;gap:3px;background:var(--bg);border-radius:8px;padding:3px;}
+.dday-vbtn{padding:4px 11px;border-radius:6px;border:none;background:none;font-family:inherit;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .14s;}
+.dday-vbtn.on{background:var(--white);color:var(--cs);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+
+/* 리스트형 */
 .dday-table{width:100%;border-collapse:collapse;background:var(--white);border-radius:12px;overflow:hidden;border:1px solid var(--border);font-size:12px;}
 .dday-table thead tr{background:linear-gradient(90deg,rgba(248,204,228,.2),rgba(196,224,255,.18));border-bottom:1.5px solid var(--border);}
 .dday-table th{padding:10px 16px;text-align:left;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;}
-.dday-table td{padding:10px 16px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.dday-table td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:middle;}
 .dday-table tr:last-child td{border-bottom:none;}
 .dday-table tr:hover td{background:var(--bg);}
-.dday-cat{display:flex;align-items:center;gap:8px;}
-.dday-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--sky),var(--pink));display:flex;align-items:center;justify-content:center;font-size:12px;overflow:hidden;border:1px solid var(--border);flex-shrink:0;}
+.dday-cat{display:flex;align-items:center;gap:10px;}
+.dday-av{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--sky),var(--pink));display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;border:2px solid var(--border);flex-shrink:0;}
 .dday-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-.dday-catname{font-weight:600;color:var(--text);}
-.dday-pairav{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--sky));display:flex;align-items:center;justify-content:center;font-size:11px;overflow:hidden;border:1px solid var(--pink2);flex-shrink:0;}
+.dday-catname{font-size:13px;font-weight:700;color:var(--text);}
+.dday-pairav{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--sky));display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;border:2px solid var(--pink2);flex-shrink:0;}
 .dday-pairav img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
-.dday-pair{display:flex;align-items:center;gap:7px;}
-.dday-pairname{font-weight:500;}
-.dday-badge{font-family:'DM Mono',monospace;font-size:11px;font-weight:700;color:var(--cp);background:rgba(192,88,136,.08);border:1px solid rgba(192,88,136,.2);border-radius:20px;padding:2px 9px;display:inline-block;}
+.dday-pair{display:flex;align-items:center;gap:9px;}
+.dday-pairname{font-size:12px;font-weight:500;}
+.dday-badge{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:var(--cp);background:rgba(192,88,136,.08);border:1px solid rgba(192,88,136,.2);border-radius:20px;padding:3px 11px;display:inline-block;}
 .dday-empty{padding:40px;text-align:center;color:var(--dim);font-size:12px;}
+
+/* 카드형 */
+.dday-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.dday-card{background:var(--white);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:box-shadow .18s,transform .18s;}
+.dday-card:hover{box-shadow:0 6px 20px rgba(160,140,200,.18);transform:translateY(-2px);}
+.dday-card-top{display:flex;align-items:center;gap:12px;padding:14px 14px 10px;}
+.dday-card-av{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--sky),var(--pink));display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;border:2px solid var(--border);flex-shrink:0;}
+.dday-card-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.dday-card-info{flex:1;min-width:0;}
+.dday-card-catname{font-size:13px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dday-card-badge{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--cp);}
+.dday-card-divider{height:1px;background:var(--border);margin:0 14px;}
+.dday-card-pair{display:flex;align-items:center;gap:10px;padding:10px 14px 14px;}
+.dday-card-pairav{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--pink),var(--sky));display:flex;align-items:center;justify-content:center;font-size:17px;overflow:hidden;border:1.5px solid var(--pink2);flex-shrink:0;}
+.dday-card-pairav img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.dday-card-pairname{font-size:12px;font-weight:600;color:var(--muted);}
+
 </style>
 </head>
 <body>
@@ -582,13 +616,11 @@ body.viewer.hide-style #mtab-style{display:none !important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v70</span>
-      <button class="hbtn vonly" onclick="openTheme()">🎨</button>
-      <button class="hbtn vonly" onclick="openCardStyle()">⊞</button>
+      <span class="vbadge">v75</span>
+      <button class="hbtn vonly" onclick="openStylePanel()">🎨 스타일</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">공유</button>
       <button class="hbtn" id="groupbtn" onclick="openGroupModal()" style="display:none">그룹</button>
-      <button class="hbtn" id="addbtn" onclick="openAddCat()" style="display:none">+ 추가</button>
       <button class="hbtn" id="signoutbtn" onclick="signOut()" style="display:none">로그아웃</button>
     </div>
   </header>
@@ -605,6 +637,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
     </div>
     <div class="catlist" id="catlist"></div>
     <div class="sbfoot" id="sbfoot"></div>
+    <div id="sb-addbtn-wrap" style="display:none;padding:8px 12px;border-top:1px solid var(--border);"><button onclick="openAddCat()" style="width:100%;padding:7px;border:1.5px dashed var(--dim);border-radius:8px;background:none;font-family:inherit;font-size:12px;font-weight:600;color:var(--cs);cursor:pointer;">+ 추가</button></div>
   </div>
 
   <div class="main" id="mainarea">
@@ -613,10 +646,15 @@ body.viewer.hide-style #mtab-style{display:none !important;}
     <div class="dday-view" id="ddayview">
       <div class="dday-header">
         <div class="dday-title">D-day</div>
+        <div class="dday-view-toggle">
+          <button class="dday-vbtn on" id="dday-vbtn-card" onclick="setDdayView('card')">카드</button>
+          <button class="dday-vbtn" id="dday-vbtn-list" onclick="setDdayView('list')">리스트</button>
+        </div>
       </div>
-      <table class="dday-table">
+      <div id="dday-card-view" class="dday-cards"></div>
+      <table class="dday-table" id="dday-list-view" style="display:none">
         <thead><tr>
-          <th style="width:36px"></th>
+          <th style="width:60px"></th>
           <th>캐릭터</th>
           <th>페어</th>
           <th>D-day</th>
@@ -677,7 +715,20 @@ body.viewer.hide-style #mtab-style{display:none !important;}
       </div>
       <div class="field"><label>이름</label><input class="finput" id="catname" placeholder="예: 호무라"></div>
       <div class="field"><label>태그 식별자 (옵션)</label><input class="finput" id="cattag" placeholder="예: artist:호무라"></div>
-      <div class="field"><label>이모지</label><input class="finput" id="catemoji" placeholder="🎨" maxlength="4"></div>
+      <div class="field"><label>이모지</label>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:5px;">
+          <input class="finput" id="catemoji" placeholder="🎨" maxlength="4" style="width:70px;">
+          <div style="display:flex;flex-wrap:wrap;gap:4px;" id="emoji-picker">
+            <span class="emoji-opt" onclick="pickEmoji(this)">🎨</span><span class="emoji-opt" onclick="pickEmoji(this)">✨</span><span class="emoji-opt" onclick="pickEmoji(this)">💫</span><span class="emoji-opt" onclick="pickEmoji(this)">🌟</span><span class="emoji-opt" onclick="pickEmoji(this)">⚡</span>
+            <span class="emoji-opt" onclick="pickEmoji(this)">🔥</span><span class="emoji-opt" onclick="pickEmoji(this)">💎</span><span class="emoji-opt" onclick="pickEmoji(this)">🌙</span><span class="emoji-opt" onclick="pickEmoji(this)">☀️</span><span class="emoji-opt" onclick="pickEmoji(this)">🌸</span>
+            <span class="emoji-opt" onclick="pickEmoji(this)">🌺</span><span class="emoji-opt" onclick="pickEmoji(this)">🌹</span><span class="emoji-opt" onclick="pickEmoji(this)">🍀</span><span class="emoji-opt" onclick="pickEmoji(this)">🦋</span><span class="emoji-opt" onclick="pickEmoji(this)">🐾</span>
+            <span class="emoji-opt" onclick="pickEmoji(this)">👑</span><span class="emoji-opt" onclick="pickEmoji(this)">🗡️</span><span class="emoji-opt" onclick="pickEmoji(this)">🏹</span><span class="emoji-opt" onclick="pickEmoji(this)">🎭</span><span class="emoji-opt" onclick="pickEmoji(this)">🎪</span>
+            <span class="emoji-opt" onclick="pickEmoji(this)">🎯</span><span class="emoji-opt" onclick="pickEmoji(this)">🔮</span><span class="emoji-opt" onclick="pickEmoji(this)">💀</span><span class="emoji-opt" onclick="pickEmoji(this)">🌊</span><span class="emoji-opt" onclick="pickEmoji(this)">❄️</span>
+            <span class="emoji-opt" onclick="pickEmoji(this)">🌪️</span><span class="emoji-opt" onclick="pickEmoji(this)">🎵</span><span class="emoji-opt" onclick="pickEmoji(this)">🎸</span><span class="emoji-opt" onclick="pickEmoji(this)">🏷️</span><span class="emoji-opt" onclick="pickEmoji(this)">🔑</span>
+          </div>
+        </div>
+      </div>
+      <div class="field"><label>그룹 배정 (선택)</label><select class="finput" id="catgroup"><option value="">없음</option></select></div>
       <div class="field"><label>메모</label><textarea class="ftarea" id="catmemo" rows="2" placeholder="자유롭게..."></textarea></div>
     </div>
     <div class="mfoot"><button class="cancelbtn" onclick="closeCatModal()">취소</button><button class="savebtn" onclick="saveCat()">저장</button></div>
@@ -746,35 +797,18 @@ body.viewer.hide-style #mtab-style{display:none !important;}
   </div>
 </div>
 
-<!-- THEME POPUP -->
-<div class="popup" id="themepopup" onmousedown="if(event.target===this)closeTheme()">
-  <div class="popbox" onmousedown="event.stopPropagation()">
-    <div class="pop-title">🎨 테마 <button class="pop-close" onclick="closeTheme()">×</button></div>
-    <div><div class="pop-section-label">프리셋</div><div class="theme-presets" id="theme-presets"></div></div>
-    <div style="height:1px;background:var(--border)"></div>
-    <div><div class="pop-section-label">커스텀</div>
-      <div class="theme-custom-grid">
-        <div class="theme-field"><label>배경</label><div class="theme-field-row"><div class="theme-swatch" id="tsw-bg" onclick="document.getElementById('tpk-bg').click()"></div><input type="color" id="tpk-bg" style="display:none" oninput="onThemePick('bg',this.value)"><input class="theme-hex" id="thx-bg" maxlength="7" oninput="onThemeHex('bg',this.value)"></div></div>
-        <div class="theme-field"><label>하늘 포인트</label><div class="theme-field-row"><div class="theme-swatch" id="tsw-sky2" onclick="document.getElementById('tpk-sky2').click()"></div><input type="color" id="tpk-sky2" style="display:none" oninput="onThemePick('sky2',this.value)"><input class="theme-hex" id="thx-sky2" maxlength="7" oninput="onThemeHex('sky2',this.value)"></div></div>
-        <div class="theme-field"><label>핑크 포인트</label><div class="theme-field-row"><div class="theme-swatch" id="tsw-pink2" onclick="document.getElementById('tpk-pink2').click()"></div><input type="color" id="tpk-pink2" style="display:none" oninput="onThemePick('pink2',this.value)"><input class="theme-hex" id="thx-pink2" maxlength="7" oninput="onThemeHex('pink2',this.value)"></div></div>
-        <div class="theme-field"><label>텍스트 포인트</label><div class="theme-field-row"><div class="theme-swatch" id="tsw-cs" onclick="document.getElementById('tpk-cs').click()"></div><input type="color" id="tpk-cs" style="display:none" oninput="onThemePick('cs',this.value)"><input class="theme-hex" id="thx-cs" maxlength="7" oninput="onThemeHex('cs',this.value)"></div></div>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="cancelbtn" onclick="resetTheme()">초기화</button><button class="savebtn" onclick="saveTheme()">저장</button></div>
-  </div>
-</div>
+<!-- STYLE PANEL (테마+카드 통합) -->
+<div class="popup" id="stylepanel" onmousedown="if(event.target===this)closeStylePanel()">
+  <div class="popbox" onmousedown="event.stopPropagation()" style="width:500px;max-height:88vh;overflow-y:auto;">
+    <div class="pop-title">🎨 스타일 <button class="pop-close" onclick="closeStylePanel()">×</button></div>
 
-<!-- CARD STYLE POPUP -->
-<div class="popup" id="cardstylepopup" onmousedown="if(event.target===this)closeCardStyle()">
-  <div class="popbox" onmousedown="event.stopPropagation()">
-    <div class="pop-title">⊞ 카드 스타일 <button class="pop-close" onclick="closeCardStyle()">×</button></div>
-    <div><div class="pop-section-label">비율</div>
+    <div><div class="pop-section-label">카드 비율</div>
       <div class="pop-row">
         <button class="style-btn" id="ratio-v" onclick="setCardRatio('vertical')">세로형 3:4</button>
         <button class="style-btn" id="ratio-h" onclick="setCardRatio('horizontal')">가로형 16:9</button>
       </div>
     </div>
-    <div><div class="pop-section-label">틀 스타일</div>
+    <div><div class="pop-section-label">카드 틀</div>
       <div class="pop-row">
         <button class="style-btn" id="frame-none" onclick="setCardFrame('none')">기본</button>
         <button class="style-btn" id="frame-round" onclick="setCardFrame('round')">둥글게</button>
@@ -784,9 +818,23 @@ body.viewer.hide-style #mtab-style{display:none !important;}
         <button class="style-btn" id="frame-polaroid" onclick="setCardFrame('polaroid')">폴라로이드</button>
       </div>
     </div>
-    <div style="display:flex;justify-content:flex-end"><button class="savebtn" onclick="closeCardStyle()">완료</button></div>
+    <div style="height:1px;background:var(--border)"></div>
+    <div><div class="pop-section-label">테마 프리셋</div><div class="theme-presets" id="theme-presets"></div></div>
+    <div><div class="pop-section-label">커스텀 컬러</div>
+      <div class="theme-custom-grid">
+        <div class="theme-field"><label>배경</label><div class="theme-field-row"><div class="theme-swatch" id="tsw-bg" onclick="document.getElementById('tpk-bg').click()"></div><input type="color" id="tpk-bg" style="display:none" oninput="onThemePick('bg',this.value)"><input class="theme-hex" id="thx-bg" maxlength="7" oninput="onThemeHex('bg',this.value)"></div></div>
+        <div class="theme-field"><label>하늘 포인트</label><div class="theme-field-row"><div class="theme-swatch" id="tsw-sky2" onclick="document.getElementById('tpk-sky2').click()"></div><input type="color" id="tpk-sky2" style="display:none" oninput="onThemePick('sky2',this.value)"><input class="theme-hex" id="thx-sky2" maxlength="7" oninput="onThemeHex('sky2',this.value)"></div></div>
+        <div class="theme-field"><label>핑크 포인트</label><div class="theme-field-row"><div class="theme-swatch" id="tsw-pink2" onclick="document.getElementById('tpk-pink2').click()"></div><input type="color" id="tpk-pink2" style="display:none" oninput="onThemePick('pink2',this.value)"><input class="theme-hex" id="thx-pink2" maxlength="7" oninput="onThemeHex('pink2',this.value)"></div></div>
+        <div class="theme-field"><label>텍스트 포인트</label><div class="theme-field-row"><div class="theme-swatch" id="tsw-cs" onclick="document.getElementById('tpk-cs').click()"></div><input type="color" id="tpk-cs" style="display:none" oninput="onThemePick('cs',this.value)"><input class="theme-hex" id="thx-cs" maxlength="7" oninput="onThemeHex('cs',this.value)"></div></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="cancelbtn" onclick="resetTheme()">테마 초기화</button><button class="savebtn" onclick="saveTheme()">저장</button></div>
   </div>
 </div>
+
+<!-- 기존 팝업들 유지 (하위 호환) -->
+<div class="popup" id="themepopup" style="display:none!important"></div>
+<div class="popup" id="cardstylepopup" style="display:none!important"></div>
 
 <!-- IMAGE POSITION POPUP -->
 <div class="popup" id="imgpospopup" onmousedown="if(event.target===this)closeImgPos()">
@@ -974,6 +1022,7 @@ function onAuth(user){
       const el=document.getElementById(id);if(el)el.style.display='flex';
     });
     loadStyleShare();
+    updateSbAddBtn();
     listenData(user.uid);
   }else{
     document.getElementById('loginscreen').style.display='flex';
@@ -1073,7 +1122,51 @@ function delGalImg(catId,idx){
   const cat=(cache[tab]||[]).find(c=>c.id===catId);if(!cat)return;
   cat.gallery.splice(idx,1);
   if(cat.galPos)delete cat.galPos[idx];
+  if(cat.galPairTag)delete cat.galPairTag[idx];
   saveDB();renderDetail(selId);
+}
+
+// 갤러리 페어 필터
+function filterGallery(catId,pairTag,btn){
+  // 탭 on 상태 변경
+  btn.closest('.gal-filter').querySelectorAll('.gal-ftab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  // 이미지 show/hide
+  const gal=document.getElementById('gallery-'+catId);if(!gal)return;
+  gal.querySelectorAll('.gimgwrap[data-gi]').forEach(el=>{
+    if(!pairTag||el.dataset.pairtag===pairTag)el.style.display='';
+    else el.style.display='none';
+  });
+  // 추가 버튼은 항상 표시
+  const gadd=gal.querySelector('.gadd');if(gadd)gadd.style.display='';
+}
+
+// 이미지에 페어 태그 설정
+function setGalPairTag(catId,gi){
+  if(IS_VIEW)return;
+  const cat=(cache[tab]||[]).find(c=>c.id===catId);if(!cat)return;
+  const pair=cat.pair||[];
+  if(!pair.length)return toast('페어를 먼저 추가해주세요');
+  // 선택 팝업 대신 간단한 select
+  const opts=['없음',...pair.map(p=>p.name)];
+  const cur=(cat.galPairTag&&cat.galPairTag[gi])||'';
+  const sel=document.createElement('select');
+  sel.style.cssText='position:fixed;z-index:9999;font-size:12px;padding:4px 8px;border-radius:8px;border:1px solid var(--border);background:var(--white);font-family:inherit;box-shadow:0 4px 16px rgba(0,0,0,.15);';
+  opts.forEach(o=>{const op=document.createElement('option');op.value=o==='없음'?'':o;op.textContent=o;if(op.value===cur)op.selected=true;sel.appendChild(op);});
+  // 위치를 버튼 근처에
+  const btn=document.querySelector(`.gimgwrap[data-gi="${gi}"] .gal-tag-btn`);
+  if(btn){const r=btn.getBoundingClientRect();sel.style.top=(r.bottom+4)+'px';sel.style.left=r.left+'px';}
+  else{sel.style.top='50%';sel.style.left='50%';}
+  document.body.appendChild(sel);
+  sel.focus();
+  const done=()=>{
+    const val=sel.value;
+    if(!cat.galPairTag)cat.galPairTag={};
+    if(val)cat.galPairTag[gi]=val;else delete cat.galPairTag[gi];
+    saveDB();document.body.removeChild(sel);renderDetail(catId);
+  };
+  sel.addEventListener('change',done);
+  sel.addEventListener('blur',()=>{setTimeout(()=>{if(document.body.contains(sel))document.body.removeChild(sel);},150);});
 }
 
 // ── IMAGE POSITION ──
@@ -1219,8 +1312,17 @@ let galDragSrc=null,galDragCat=null;
 function initGalleryDrag(catId){
   document.querySelectorAll('.gimgwrap[data-gi]').forEach(el=>{
     el.draggable=true;
-    el.addEventListener('dragstart',e=>{galDragSrc=parseInt(el.dataset.gi);galDragCat=catId;el.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
-    el.addEventListener('dragend',()=>el.classList.remove('dragging'));
+    el._wasDragging=false;
+    el.addEventListener('dragstart',e=>{
+      galDragSrc=parseInt(el.dataset.gi);galDragCat=catId;
+      el.classList.add('dragging');el._wasDragging=true;
+      e.dataTransfer.effectAllowed='move';
+    });
+    el.addEventListener('dragend',()=>{
+      el.classList.remove('dragging');
+      // 클릭 이벤트 억제 후 리셋
+      setTimeout(()=>{el._wasDragging=false;},100);
+    });
     el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('drag-over');});
     el.addEventListener('dragleave',()=>el.classList.remove('drag-over'));
     el.addEventListener('drop',e=>{
@@ -1228,7 +1330,15 @@ function initGalleryDrag(catId){
       const toIdx=parseInt(el.dataset.gi);
       if(galDragSrc===null||galDragSrc===toIdx)return;
       const cat=(cache[tab]||[]).find(c=>c.id===galDragCat);if(!cat||!cat.gallery)return;
+      // 갤러리 순서 이동
       const[item]=cat.gallery.splice(galDragSrc,1);cat.gallery.splice(toIdx,0,item);
+      // galPos도 같이 이동
+      if(cat.galPos){
+        const posArr=cat.gallery.map((_,i)=>cat.galPos[i]||null);
+        const[posItem]=posArr.splice(galDragSrc,1);posArr.splice(toIdx,0,posItem);
+        const newGalPos={};posArr.forEach((p,i)=>{if(p)newGalPos[i]=p;});
+        cat.galPos=newGalPos;
+      }
       galDragSrc=null;saveDB();renderDetail(selId);
     });
   });
@@ -1436,6 +1546,7 @@ function renderDetail(id){
     <div class="sumchips">${allTags.map(t=>`<span class="schap" onclick="cpTag('${esc(t)}')">${esc(t)}</span>`).join('')}</div>
   </div>`:'';
 
+  const pairSep=`<div style="height:1px;background:var(--border);margin:16px 0 4px;"></div>`;
   const pairTitle=cat.pairTitle||'💘 Pair';
   const parseTags=v=>(v||[]).filter(Boolean);
   const pairHtml=(tab==='artist'&&(!IS_VIEW||pair.some(p=>p.startDate||(p.tagsLook||[]).length||(p.tagsOutfit||[]).length||(p.tagsEtc||[]).length||(p.tags||[]).length)))?`<div class="pairsec">
@@ -1491,21 +1602,35 @@ function renderDetail(id){
   // 갤러리: 비어있고 뷰어면 숨김
   const hasGallery=gallery.length>0;
   const showGal=hasGallery||!IS_VIEW;
+
+  // 갤러리 페어 필터 탭 생성
+  const galPairs=[{id:'',name:'전체'},...pair.map(p=>({id:p.name,name:p.name}))];
+  const filterTabs=hasGallery?`<div class="gal-filter">
+    ${galPairs.map(p=>`<button class="gal-ftab${p.id===''?' on':''}" onclick="filterGallery('${cat.id}','${p.id}',this)">${esc(p.name)}</button>`).join('')}
+  </div>`:'';
+
+  const galImgsHtml=gallery.map((src,gi)=>{
+    const gpos=(cat.galPos&&cat.galPos[gi])||{x:50,y:50,size:100};
+    const gsz=gpos.size||100;
+    const gst=gsz>100
+      ?`object-fit:cover;width:${gsz}%;height:${gsz}%;position:absolute;left:${-(gsz-100)*gpos.x/100}%;top:${-(gsz-100)*gpos.y/100}%;`
+      :`object-fit:cover;width:100%;height:100%;object-position:${gpos.x}% ${gpos.y}%;`;
+    const pairTag=(cat.galPairTag&&cat.galPairTag[gi])||'';
+    return `<div class="gimgwrap" data-gi="${gi}" data-pairtag="${pairTag}" onclick="if(!this._wasDragging)openLbox('${src.replace(/'/g,"\\'")}')">
+      <img src="${src}" alt="" style="${gst}">
+      ${IS_VIEW?'':`
+      <button class="gimgdel" onclick="event.stopPropagation();delGalImg('${cat.id}',${gi})">✕</button>
+      <button class="gimgpos-btn" onclick="event.stopPropagation();openGalImgPos('${cat.id}',${gi})" title="위치/크기">⤢</button>
+      <button class="gal-tag-btn" onclick="event.stopPropagation();setGalPairTag('${cat.id}',${gi})" title="페어 지정">🏷</button>
+      <div class="gimg-drag-handle" title="드래그로 순서 변경">⠿</div>
+      ${pairTag?`<div style="position:absolute;bottom:4px;left:26px;background:rgba(0,0,0,.5);color:#fff;font-size:8px;padding:1px 5px;border-radius:4px;pointer-events:none;">${esc(pairTag)}</div>`:''}`}
+    </div>`;
+  }).join('');
+
   const galHtml=showGal?`<div class="cgal-section">
-    ${hasGallery?`<div class="cgal-label">갤러리</div>`:''}
-    <div class="gallery">
-      ${gallery.map((src,gi)=>{
-        const gpos=(cat.galPos&&cat.galPos[gi])||{x:50,y:50,size:100};
-        const gsz=gpos.size||100;
-        const gst=gsz>100
-          ?`object-fit:cover;width:${gsz}%;height:${gsz}%;position:absolute;left:${-(gsz-100)*gpos.x/100}%;top:${-(gsz-100)*gpos.y/100}%;`
-          :`object-fit:cover;width:100%;height:100%;object-position:${gpos.x}% ${gpos.y}%;`;
-        return `<div class="gimgwrap" data-gi="${gi}" onclick="openLbox('${src.replace(/'/g,"\\'")}')">
-          <img src="${src}" alt="" style="${gst}">
-          ${IS_VIEW?'':`<button class="gimgdel" onclick="event.stopPropagation();delGalImg('${cat.id}',${gi})">✕</button>
-          <button class="gimgpos-btn" onclick="event.stopPropagation();openGalImgPos('${cat.id}',${gi})" title="위치/크기">⤢</button>`}
-        </div>`;
-      }).join('')}
+    ${hasGallery?`<div class="cgal-label">갤러리</div>${filterTabs}`:''}
+    <div class="gallery" id="gallery-${cat.id}">
+      ${galImgsHtml}
       ${IS_VIEW?'':`<button class="gadd" onclick="document.getElementById('galinput_${cat.id}').click()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15l5-5 4 4 3-3 4 4"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>추가
       </button>
@@ -1550,7 +1675,7 @@ function renderDetail(id){
     <div class="dtab-pane on" id="dtpane-tags">
       <div class="entries">${entriesHtml}</div>
       ${IS_VIEW?'':`<button class="addebtn" onclick="openAddEntry('${cat.id}')">+ 항목 추가</button>`}
-      ${sumHtml}${pairHtml}${galHtml}
+      ${sumHtml}${pairSep}${pairHtml}${galHtml}
     </div>
     ${profilePaneHtml||''}`;
 
@@ -1660,8 +1785,20 @@ function switchTab(t){
   document.getElementById('ddayview').classList.toggle('on',isDD);
   ['addbtn','groupbtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=(isDD||IS_VIEW)?'none':'flex';});
   renderSidebar();
+  updateSbAddBtn();
   if(isDD){renderDday();return;}
   renderOverview();
+}
+
+let ddayViewMode=localStorage.getItem('tv_dday_view')||'card';
+
+function setDdayView(mode){
+  ddayViewMode=mode;
+  localStorage.setItem('tv_dday_view',mode);
+  document.getElementById('dday-vbtn-card').classList.toggle('on',mode==='card');
+  document.getElementById('dday-vbtn-list').classList.toggle('on',mode==='list');
+  document.getElementById('dday-card-view').style.display=mode==='card'?'grid':'none';
+  document.getElementById('dday-list-view').style.display=mode==='list'?'table':'none';
 }
 
 function renderDday(){
@@ -1675,31 +1812,47 @@ function renderDday(){
       rows.push({cat,pairName:p.name,pairAvatar:p.avatar||'',pairEmoji:p.emoji||'',dplus,startDate:p.startDate});
     });
   });
-  // D+ 숫자 기준 정렬 (큰 순)
   rows.sort((a,b)=>{
     const na=parseInt(a.dplus.replace('D+',''))||0;
     const nb=parseInt(b.dplus.replace('D+',''))||0;
     return nb-na;
   });
-  const tbody=document.getElementById('dday-tbody');
+
+  setDdayView(ddayViewMode);
+
   if(!rows.length){
-    tbody.innerHTML=`<tr><td colspan="4" class="dday-empty">페어에 기념일을 설정하면 여기에 표시돼요</td></tr>`;
+    document.getElementById('dday-card-view').innerHTML=`<div class="dday-empty" style="grid-column:1/-1">페어에 기념일을 설정하면 여기에 표시돼요</div>`;
+    document.getElementById('dday-tbody').innerHTML=`<tr><td colspan="4" class="dday-empty">페어에 기념일을 설정하면 여기에 표시돼요</td></tr>`;
     return;
   }
-  tbody.innerHTML=rows.map(r=>{
-    const avHtml=r.cat.avatar
-      ?`<img src="${r.cat.avatar}" alt="">`
-      :(r.cat.emoji||'🏷️');
-    const pairAvHtml=r.pairAvatar
-      ?`<img src="${r.pairAvatar}" alt="">`
-      :(r.pairEmoji||'💘');
-    return `<tr style="cursor:pointer" onclick="switchTab('artist');setTimeout(()=>selectCat('${r.cat.id}'),50)">
-      <td><div class="dday-av">${avHtml}</div></td>
+
+  const mkAv=(avatar,emoji,cls)=>avatar?`<img src="${avatar}" alt="">`:emoji||({'dday-card-av':'🏷️','dday-av':'🏷️','dday-card-pairav':'💘','dday-pairav':'💘'}[cls]||'');
+
+  // 카드형
+  document.getElementById('dday-card-view').innerHTML=rows.map(r=>`
+    <div class="dday-card" onclick="switchTab('artist');setTimeout(()=>selectCat('${r.cat.id}'),50)">
+      <div class="dday-card-top">
+        <div class="dday-card-av">${r.cat.avatar?`<img src="${r.cat.avatar}" alt="">`:(r.cat.emoji||'🏷️')}</div>
+        <div class="dday-card-info">
+          <div class="dday-card-catname">${esc(r.cat.name)}</div>
+          <div class="dday-card-badge">${esc(r.dplus)}</div>
+        </div>
+      </div>
+      <div class="dday-card-divider"></div>
+      <div class="dday-card-pair">
+        <div class="dday-card-pairav">${r.pairAvatar?`<img src="${r.pairAvatar}" alt="">`:r.pairEmoji||'💘'}</div>
+        <span class="dday-card-pairname">${esc(r.pairName)}</span>
+      </div>
+    </div>`).join('');
+
+  // 리스트형
+  document.getElementById('dday-tbody').innerHTML=rows.map(r=>`
+    <tr style="cursor:pointer" onclick="switchTab('artist');setTimeout(()=>selectCat('${r.cat.id}'),50)">
+      <td><div class="dday-av">${r.cat.avatar?`<img src="${r.cat.avatar}" alt="">`:(r.cat.emoji||'🏷️')}</div></td>
       <td><span class="dday-catname">${esc(r.cat.name)}</span></td>
-      <td><div class="dday-pair"><div class="dday-pairav">${pairAvHtml}</div><span class="dday-pairname">${esc(r.pairName)}</span></div></td>
+      <td><div class="dday-pair"><div class="dday-pairav">${r.pairAvatar?`<img src="${r.pairAvatar}" alt="">`:r.pairEmoji||'💘'}</div><span class="dday-pairname">${esc(r.pairName)}</span></div></td>
       <td><span class="dday-badge">${esc(r.dplus)}</span></td>
-    </tr>`;
-  }).join('');
+    </tr>`).join('');
 }
 function goBack(){selId=null;document.getElementById('overview').style.display='block';document.getElementById('detail').style.display='none';renderSidebar();}
 function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('sboverlay').classList.add('on');}
@@ -1825,15 +1978,16 @@ function closeSharePop(){document.getElementById('sharepop').classList.remove('o
 function cpShareLink(n){const val=document.getElementById('sharelink'+n).value;const btn=document.getElementById('sharecpbtn'+n);cpText(val,'');btn.textContent='✓ 복사됨';btn.classList.add('done');setTimeout(()=>{btn.textContent='복사';btn.classList.remove('done');},2000);}
 
 // ── CAT MODAL ──
-function openAddCat(){if(IS_VIEW)return;editCatId=null;pendingAv=null;document.getElementById('catmodaltitle').textContent='카테고리 추가';['catname','cattag','catmemo'].forEach(id=>document.getElementById(id).value='');document.getElementById('catemoji').value=tab==='artist'?'🎨':'✨';document.getElementById('pavprev').innerHTML='🎨';document.getElementById('pavinput').value='';document.getElementById('catmodal').classList.add('on');}
-function openEditCat(id){if(IS_VIEW)return;const cat=(cache[tab]||[]).find(c=>c.id===id);if(!cat)return;editCatId=id;pendingAv=cat.avatar||null;document.getElementById('catmodaltitle').textContent='카테고리 편집';document.getElementById('catname').value=cat.name;document.getElementById('cattag').value=cat.tag||'';document.getElementById('catemoji').value=cat.emoji||'🏷️';document.getElementById('catmemo').value=cat.memo||'';document.getElementById('pavprev').innerHTML=cat.avatar?`<img src="${cat.avatar}" alt="">`:(cat.emoji||'🎨');document.getElementById('catmodal').classList.add('on');}
+function openAddCat(){if(IS_VIEW)return;editCatId=null;pendingAv=null;document.getElementById('catmodaltitle').textContent='카테고리 추가';['catname','cattag','catmemo'].forEach(id=>document.getElementById(id).value='');document.getElementById('catemoji').value=tab==='artist'?'🎨':'✨';document.getElementById('pavprev').innerHTML='🎨';document.getElementById('pavinput').value='';fillCatGroupSelect('');document.getElementById('catmodal').classList.add('on');}
+function openEditCat(id){if(IS_VIEW)return;const cat=(cache[tab]||[]).find(c=>c.id===id);if(!cat)return;editCatId=id;pendingAv=cat.avatar||null;document.getElementById('catmodaltitle').textContent='카테고리 편집';document.getElementById('catname').value=cat.name;document.getElementById('cattag').value=cat.tag||'';document.getElementById('catemoji').value=cat.emoji||'🏷️';document.getElementById('catmemo').value=cat.memo||'';document.getElementById('pavprev').innerHTML=cat.avatar?`<img src="${cat.avatar}" alt="">`:(cat.emoji||'🎨');fillCatGroupSelect(cat.groupId||'');document.getElementById('catmodal').classList.add('on');}
 function closeCatModal(){document.getElementById('catmodal').classList.remove('on');}
 function saveCat(){
   if(IS_VIEW)return;
   const name=document.getElementById('catname').value.trim();if(!name)return alert('이름을 입력하세요.');
   const tag=document.getElementById('cattag').value.trim(),emoji=document.getElementById('catemoji').value.trim()||'🏷️',avatar=pendingAv||'',memo=document.getElementById('catmemo').value;
-  if(editCatId){const cat=(cache[tab]||[]).find(c=>c.id===editCatId);if(cat){cat.name=name;cat.tag=tag;cat.emoji=emoji;cat.avatar=avatar;cat.memo=memo;}}
-  else{if(!cache[tab])cache[tab]=[];cache[tab].push({id:'c'+Date.now(),name,tag,emoji,avatar,memo,entries:[],gallery:[]});}
+  const groupId=document.getElementById('catgroup')?.value||'';
+  if(editCatId){const cat=(cache[tab]||[]).find(c=>c.id===editCatId);if(cat){cat.name=name;cat.tag=tag;cat.emoji=emoji;cat.avatar=avatar;cat.memo=memo;if(groupId)cat.groupId=groupId;else delete cat.groupId;}}
+  else{if(!cache[tab])cache[tab]=[];const newCat={id:'c'+Date.now(),name,tag,emoji,avatar,memo,entries:[],gallery:[]};if(groupId)newCat.groupId=groupId;cache[tab].push(newCat);}
   saveDB();closeCatModal();
 }
 function delCat(id){if(IS_VIEW||!confirm('삭제할까요?'))return;cache[tab]=(cache[tab]||[]).filter(c=>c.id!==id);saveDB();selId=null;document.getElementById('overview').style.display='block';document.getElementById('detail').style.display='none';renderSidebar();}
@@ -2082,7 +2236,42 @@ function deleteGroupInModal(gi){
 function closeGroupModal(){document.getElementById('groupmodal').classList.remove('on');}
 function saveGroupManage(){document.querySelectorAll('#group-manage-list select').forEach(sel=>{const cat=(cache[tab]||[]).find(c=>c.id===sel.dataset.catid);if(!cat)return;if(sel.value)cat.groupId=sel.value;else delete cat.groupId;});saveDB();closeGroupModal();renderOverview();}
 
-// ── CARD STYLE ──
+// ── STYLE PANEL (테마+카드 통합) ──
+function openStylePanel(){
+  updateCardStyleUI();
+  document.getElementById('theme-presets').innerHTML=THEME_PRESETS.map((p,i)=>`<div class="theme-preset" style="background:linear-gradient(135deg,${p.sky2},${p.pink2})" onclick="applyPreset(${i})" title="${p.name}"></div>`).join('');
+  ['bg','sky2','pink2','cs'].forEach(k=>{
+    const val=getComputedStyle(document.documentElement).getPropertyValue('--'+k).trim();
+    const sw=document.getElementById('tsw-'+k),pk=document.getElementById('tpk-'+k),hx=document.getElementById('thx-'+k);
+    if(sw)sw.style.background=val;if(pk&&val.startsWith('#'))pk.value=val;if(hx)hx.value=val;
+  });
+  document.getElementById('stylepanel').classList.add('on');
+}
+function closeStylePanel(){document.getElementById('stylepanel').classList.remove('on');}
+// 하위 호환 (기존 코드에서 호출하는 경우)
+function openTheme(){openStylePanel();}
+function closeTheme(){closeStylePanel();}
+function openCardStyle(){openStylePanel();}
+function closeCardStyle(){closeStylePanel();}
+
+// ── EMOJI PICKER ──
+function pickEmoji(el){
+  document.getElementById('catemoji').value=el.textContent;
+}
+
+// ── CATMODAL 그룹 select 채우기 ──
+function fillCatGroupSelect(currentGroupId){
+  const sel=document.getElementById('catgroup');if(!sel)return;
+  const groups=getGroups();
+  sel.innerHTML='<option value="">없음</option>'+groups.map(g=>`<option value="${g.id}" ${g.id===currentGroupId?'selected':''}>${esc(g.name)}</option>`).join('');
+}
+
+// ── 사이드바 + 추가 버튼 표시 ──
+function updateSbAddBtn(){
+  const wrap=document.getElementById('sb-addbtn-wrap');
+  if(!wrap)return;
+  wrap.style.display=(!IS_VIEW&&tab!=='dday')?'block':'none';
+}
 const FRAMES=['none','round','square','shadow','border','polaroid'];
 function loadCardStyle(){
   const s=localStorage.getItem('tv_cardstyle')||'vertical';
