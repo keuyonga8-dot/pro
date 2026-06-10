@@ -639,7 +639,7 @@ body.viewer.hide-dday #mtab-dday{display:none !important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v87</span>
+      <span class="vbadge">v88</span>
       <button class="hbtn vonly" onclick="openStylePanel()">🎨 스타일</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">공유</button>
@@ -1126,10 +1126,9 @@ function listenData(uid){
     } else if(IS_VIEW && s.styleShared===true){
       document.body.classList.remove('hide-style');
     }
-    if(IS_VIEW && s.ddayShared===false){
-      document.body.classList.add('hide-dday');
-    } else if(IS_VIEW){
-      document.body.classList.remove('hide-dday');
+    if(IS_VIEW){
+      if(s.ddayShared===false) document.body.classList.add('hide-dday');
+      else document.body.classList.remove('hide-dday');
     }
   });
 }
@@ -2002,7 +2001,6 @@ function toggleStyleShare(){
   toast(next?'베이스프롬 공유 켜짐':'베이스프롬 공유 꺼짐');
 }
 function updateStyleShareBtn(shared){const btn=document.getElementById('stylesharebtn');if(!btn)return;btn.textContent=shared?'베이스 ●':'베이스 ○';btn.style.color=shared?'var(--cs)':'var(--dim)';}
-
 function loadDdayShare(){const shared=localStorage.getItem('tv_dday_shared')!=='false';updateDdayShareBtn(shared);}
 function toggleDdayShare(){
   const cur=localStorage.getItem('tv_dday_shared')!=='false';
