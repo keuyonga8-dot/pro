@@ -582,7 +582,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v69</span>
+      <span class="vbadge">v70</span>
       <button class="hbtn vonly" onclick="openTheme()">🎨</button>
       <button class="hbtn vonly" onclick="openCardStyle()">⊞</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
@@ -1012,9 +1012,11 @@ function listenData(uid){
   });
   fbDB.ref('users/'+uid+'/groups').on('value',snap=>{
     const v=snap.val()||{};
+    // Firebase가 배열을 객체로 저장하므로 Object.values로 변환
+    const toArr=x=>!x?[]:Array.isArray(x)?x:Object.values(x);
     fbGroups={
-      artist:v.artist||[],
-      style:v.style||[]
+      artist:toArr(v.artist),
+      style:toArr(v.style)
     };
     renderOverview();
   });
