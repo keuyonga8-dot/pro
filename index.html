@@ -341,8 +341,8 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .mcopybtn{display:flex;align-items:center;gap:6px;padding:9px 18px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--sky2),var(--pink2));font-family:inherit;font-size:12px;font-weight:700;color:#607098;cursor:pointer;white-space:nowrap;}
 
 /* LIGHTBOX */
-.lbox{display:none;position:fixed;inset:0;background:rgba(40,30,60,.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s;}
-.lbox.on{display:flex;opacity:1;pointer-events:all;}
+.lbox{position:fixed;inset:0;background:rgba(40,30,60,.7);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .2s;}
+.lbox.on{opacity:1;pointer-events:all;}
 .lbox img{max-width:90vw;max-height:90vh;border-radius:12px;}
 .lboxclose{position:absolute;top:20px;right:24px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:24px;cursor:pointer;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;}
 
@@ -351,8 +351,8 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
 
 /* MODAL */
-.overlay{display:none;position:fixed;inset:0;background:rgba(210,200,230,.35);backdrop-filter:blur(8px);align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s;}
-.overlay.on{display:flex;opacity:1;pointer-events:all;}
+.overlay{position:fixed;inset:0;background:rgba(210,200,230,.35);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s;}
+.overlay.on{opacity:1;pointer-events:all;}
 .modal{background:var(--white);border:1px solid var(--border);border-radius:16px;width:480px;max-width:92vw;max-height:88vh;overflow-y:auto;transform:scale(.95) translateY(10px);transition:transform .2s;box-shadow:0 14px 44px rgba(150,130,190,.18);}
 .overlay.on .modal{transform:scale(1) translateY(0);}
 .mhead{display:flex;align-items:center;justify-content:space-between;padding:17px 20px 15px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,rgba(196,224,255,.25),rgba(248,204,228,.2));border-radius:16px 16px 0 0;}
@@ -379,8 +379,8 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .pavhint strong{color:var(--cs);cursor:pointer;}
 
 /* SHARE */
-.sharepop{display:none;position:fixed;inset:0;z-index:9998;background:rgba(210,200,230,.45);backdrop-filter:blur(8px);align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
-.sharepop.on{display:flex;opacity:1;pointer-events:all;}
+.sharepop{position:fixed;inset:0;z-index:9998;background:rgba(210,200,230,.45);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.sharepop.on{opacity:1;pointer-events:all;}
 .sharebox{background:var(--white);border-radius:18px;padding:28px 26px;width:480px;max-width:92vw;display:flex;flex-direction:column;gap:16px;border:1px solid var(--border);box-shadow:0 16px 48px rgba(150,130,190,.2);}
 .sharetitle{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;}
 .shareclose{margin-left:auto;background:none;border:none;font-size:20px;color:var(--dim);cursor:pointer;}
@@ -403,8 +403,8 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .emoji-opt:hover{background:var(--sky);}
 
 /* STYLE PANEL (테마+카드 통합) */
-.popup{display:none;position:fixed;inset:0;z-index:9998;background:rgba(210,200,230,.35);backdrop-filter:blur(8px);align-items:flex-start;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;overflow-y:auto;padding:20px 0;}
-.popup.on{display:flex;opacity:1;pointer-events:all;}
+.popup{position:fixed;inset:0;z-index:9998;background:rgba(210,200,230,.35);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.popup.on{opacity:1;pointer-events:all;}
 .popbox{background:var(--white);border-radius:18px;padding:24px;width:440px;max-width:92vw;display:flex;flex-direction:column;gap:14px;border:1px solid var(--border);box-shadow:0 16px 48px rgba(150,130,190,.2);}
 .pop-title{font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:space-between;}
 .pop-close{background:none;border:none;font-size:18px;color:var(--dim);cursor:pointer;}
@@ -497,8 +497,8 @@ body.viewer.hide-style #mtab-style{display:none !important;}
 .pcard-footer-code{font-size:8px;color:#cec4b8;letter-spacing:.14em;text-transform:uppercase;}
 
 /* 프로필 에디터 팝업 */
-.profile-popup{display:none;position:fixed;inset:0;z-index:9999;background:rgba(210,200,230,.45);backdrop-filter:blur(10px);align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
-.profile-popup.on{display:flex;opacity:1;pointer-events:all;}
+.profile-popup{position:fixed;inset:0;z-index:9999;background:rgba(210,200,230,.45);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.profile-popup.on{opacity:1;pointer-events:all;}
 .profile-editor{background:var(--white);border-radius:20px;width:min(98vw,1200px);height:min(96vh,860px);display:flex;flex-direction:column;border:1px solid var(--border);box-shadow:0 20px 60px rgba(140,120,180,.2);overflow:hidden;}
 .pe-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,rgba(196,224,255,.2),rgba(248,204,228,.15));flex-shrink:0;}
 .pe-title{font-size:14px;font-weight:700;color:var(--cs);}
@@ -616,7 +616,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v82</span>
+      <span class="vbadge">v83</span>
       <button class="hbtn vonly" onclick="openStylePanel()">🎨 스타일</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">공유</button>
@@ -724,7 +724,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
           <button type="button" onclick="openEmojiPicker(this)" style="padding:5px 10px;border:1px solid var(--border);border-radius:7px;background:var(--bg);font-size:12px;cursor:pointer;font-family:inherit;color:var(--muted);">선택 ▾</button>
         </div>
         <!-- 이모지 팝업 -->
-        <div id="emoji-popup" style="display:none;position:fixed;z-index:10000;background:var(--white);border:1px solid var(--border);border-radius:12px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);">
+        <div id="emoji-popup" style="display:none;position:absolute;z-index:10000;background:var(--white);border:1px solid var(--border);border-radius:12px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);">
           <div style="display:flex;flex-wrap:wrap;gap:2px;width:240px;">
             <span class="emoji-opt" onclick="pickEmoji(this)">🎨</span><span class="emoji-opt" onclick="pickEmoji(this)">✨</span><span class="emoji-opt" onclick="pickEmoji(this)">💫</span><span class="emoji-opt" onclick="pickEmoji(this)">🌟</span><span class="emoji-opt" onclick="pickEmoji(this)">⚡</span><span class="emoji-opt" onclick="pickEmoji(this)">🔥</span><span class="emoji-opt" onclick="pickEmoji(this)">💎</span><span class="emoji-opt" onclick="pickEmoji(this)">🌙</span><span class="emoji-opt" onclick="pickEmoji(this)">☀️</span><span class="emoji-opt" onclick="pickEmoji(this)">🌸</span><span class="emoji-opt" onclick="pickEmoji(this)">🌺</span><span class="emoji-opt" onclick="pickEmoji(this)">🌹</span><span class="emoji-opt" onclick="pickEmoji(this)">🍀</span><span class="emoji-opt" onclick="pickEmoji(this)">🦋</span><span class="emoji-opt" onclick="pickEmoji(this)">🐾</span><span class="emoji-opt" onclick="pickEmoji(this)">👑</span><span class="emoji-opt" onclick="pickEmoji(this)">🗡️</span><span class="emoji-opt" onclick="pickEmoji(this)">🏹</span><span class="emoji-opt" onclick="pickEmoji(this)">🎭</span><span class="emoji-opt" onclick="pickEmoji(this)">🎯</span><span class="emoji-opt" onclick="pickEmoji(this)">🔮</span><span class="emoji-opt" onclick="pickEmoji(this)">💀</span><span class="emoji-opt" onclick="pickEmoji(this)">🌊</span><span class="emoji-opt" onclick="pickEmoji(this)">❄️</span><span class="emoji-opt" onclick="pickEmoji(this)">🌪️</span><span class="emoji-opt" onclick="pickEmoji(this)">🎵</span><span class="emoji-opt" onclick="pickEmoji(this)">🎸</span><span class="emoji-opt" onclick="pickEmoji(this)">🏷️</span><span class="emoji-opt" onclick="pickEmoji(this)">🔑</span><span class="emoji-opt" onclick="pickEmoji(this)">💘</span><span class="emoji-opt" onclick="pickEmoji(this)">🎀</span><span class="emoji-opt" onclick="pickEmoji(this)">🐉</span><span class="emoji-opt" onclick="pickEmoji(this)">🦊</span><span class="emoji-opt" onclick="pickEmoji(this)">🐺</span><span class="emoji-opt" onclick="pickEmoji(this)">🐈</span><span class="emoji-opt" onclick="pickEmoji(this)">🌴</span><span class="emoji-opt" onclick="pickEmoji(this)">🍁</span><span class="emoji-opt" onclick="pickEmoji(this)">🌿</span><span class="emoji-opt" onclick="pickEmoji(this)">🍄</span><span class="emoji-opt" onclick="pickEmoji(this)">🦋</span><span class="emoji-opt" onclick="pickEmoji(this)">🌈</span><span class="emoji-opt" onclick="pickEmoji(this)">🔭</span><span class="emoji-opt" onclick="pickEmoji(this)">⚗️</span><span class="emoji-opt" onclick="pickEmoji(this)">🧿</span><span class="emoji-opt" onclick="pickEmoji(this)">🪬</span><span class="emoji-opt" onclick="pickEmoji(this)">🧸</span><span class="emoji-opt" onclick="pickEmoji(this)">🎲</span><span class="emoji-opt" onclick="pickEmoji(this)">♟️</span><span class="emoji-opt" onclick="pickEmoji(this)">🎪</span><span class="emoji-opt" onclick="pickEmoji(this)">🃏</span>
           </div>
