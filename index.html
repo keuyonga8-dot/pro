@@ -443,6 +443,7 @@ body.viewer .mbar,
 body.viewer .gadd,
 body.viewer .gimgdel,
 body.viewer .gimgpos-btn,
+body.viewer .gal-tok-btn,
 body.viewer .pairsec,
 body.viewer .add-group-btn,
 body.viewer .group-actions,
@@ -619,7 +620,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v76</span>
+      <span class="vbadge">v78</span>
       <button class="hbtn vonly" onclick="openStylePanel()">🎨 스타일</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">공유</button>
@@ -736,7 +737,9 @@ body.viewer.hide-style #mtab-style{display:none !important;}
           </div>
         </div>
       </div>
-      <div class="field"><label>그룹 배정 (선택)</label><select class="finput" id="catgroup"><option value="">없음</option></select></div>
+      <div class="field"><label>그룹 배정 <span style="font-size:10px;font-weight:400;color:var(--muted)">(선택)</span></label>
+        <div id="catgroup-wrap"></div>
+      </div>
       <div class="field"><label>메모</label><textarea class="ftarea" id="catmemo" rows="2" placeholder="자유롭게..."></textarea></div>
     </div>
     <div class="mfoot"><button class="cancelbtn" onclick="closeCatModal()">취소</button><button class="savebtn" onclick="saveCat()">저장</button></div>
@@ -1138,7 +1141,7 @@ function filterGallery(catId,pairTag,btn){
     if(!pairTag||el.dataset.pairtag===pairTag)el.style.display='';
     else el.style.display='none';
   });
-  const gadd=gal.querySelector('.gadd');if(gadd)gadd.style.display='';
+  const gadd=gal.querySelector('.gadd');if(gadd)gadd.style.display=pairTag?'none':'';
 }
 
 function setGalPairTag(catId,gi){
@@ -1164,6 +1167,61 @@ function setGalPairTag(catId,gi){
   };
   sel.addEventListener('change',done);
   sel.addEventListener('blur',()=>{setTimeout(()=>{if(document.body.contains(sel))document.body.removeChild(sel);},150);});
+}
+
+// ── GALLERY TOKEN ──
+function editGalToken(catId,gi){
+  if(IS_VIEW)return;
+  const cat=(cache[tab]||[]).find(c=>c.id===catId);if(!cat)return;
+  const curToken=(cat.galToken&&cat.galToken[gi])||'';
+  const curColor=(cat.galTokenColor&&cat.galTokenColor[gi])||'rgba(0,0,0,0.55)';
+
+  // 팝업 만들기
+  const pop=document.createElement('div');
+  pop.style.cssText='position:fixed;z-index:9999;background:var(--white);border:1px solid var(--border);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.15);padding:14px;width:240px;font-family:inherit;';
+  const btn=document.querySelector(`.gimgwrap[data-gi="${gi}"] .gal-tok-btn`);
+  if(btn){const r=btn.getBoundingClientRect();pop.style.top=(r.bottom+6)+'px';pop.style.left=Math.min(r.left,window.innerWidth-255)+'px';}
+  else{pop.style.top='40%';pop.style.left='50%';pop.style.transform='translateX(-50%)';}
+
+  pop.innerHTML=`
+    <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;letter-spacing:.04em;">토큰 텍스트</div>
+    <textarea id="tok-inp" rows="3" style="width:100%;box-sizing:border-box;font-family:inherit;font-size:11.5px;border:1px solid var(--border);border-radius:7px;padding:6px 8px;resize:vertical;outline:none;background:var(--bg);color:var(--text);">${curToken}</textarea>
+    <div style="font-size:11px;font-weight:700;color:var(--muted);margin:8px 0 5px;">배경색</div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;" id="tok-colors">
+      ${['rgba(0,0,0,0.55)','rgba(20,20,40,0.72)','rgba(192,88,136,0.65)','rgba(80,120,200,0.65)','rgba(30,140,80,0.65)','rgba(160,100,30,0.65)','rgba(100,60,160,0.65)','rgba(0,0,0,0)'].map(col=>`<div data-col="${col}" title="${col==='rgba(0,0,0,0)'?'없음':''}" style="width:22px;height:22px;border-radius:5px;background:${col==='rgba(0,0,0,0)'?'repeating-conic-gradient(#ccc 0% 25%,#fff 0% 50%) 0 0/8px 8px':col};cursor:pointer;border:2px solid ${col===curColor?'var(--cp)':'var(--border)'};box-sizing:border-box;"></div>`).join('')}
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button id="tok-off" style="flex:1;padding:5px;border-radius:7px;border:1px solid var(--border);background:var(--bg);font-family:inherit;font-size:11px;cursor:pointer;color:var(--muted);">OFF (삭제)</button>
+      <button id="tok-save" style="flex:1;padding:5px;border-radius:7px;border:none;background:var(--cp);color:#fff;font-family:inherit;font-size:11px;font-weight:700;cursor:pointer;">저장</button>
+    </div>`;
+  document.body.appendChild(pop);
+
+  let selectedColor=curColor;
+  pop.querySelectorAll('#tok-colors [data-col]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      selectedColor=el.dataset.col;
+      pop.querySelectorAll('#tok-colors [data-col]').forEach(e=>e.style.borderColor='var(--border)');
+      el.style.borderColor='var(--cp)';
+    });
+  });
+
+  const close=()=>{if(document.body.contains(pop))document.body.removeChild(pop);};
+
+  pop.querySelector('#tok-save').addEventListener('click',()=>{
+    const val=pop.querySelector('#tok-inp').value.trim();
+    if(!cat.galToken)cat.galToken={};
+    if(!cat.galTokenColor)cat.galTokenColor={};
+    if(val){cat.galToken[gi]=val;cat.galTokenColor[gi]=selectedColor;}
+    else{delete cat.galToken[gi];delete cat.galTokenColor[gi];}
+    saveDB();close();renderDetail(catId);
+  });
+  pop.querySelector('#tok-off').addEventListener('click',()=>{
+    if(cat.galToken)delete cat.galToken[gi];
+    if(cat.galTokenColor)delete cat.galTokenColor[gi];
+    saveDB();close();renderDetail(catId);
+  });
+
+  setTimeout(()=>document.addEventListener('mousedown',function h(e){if(!pop.contains(e.target)){close();document.removeEventListener('mousedown',h);}}),100);
 }
 
 // ── IMAGE POSITION ──
@@ -1598,12 +1656,17 @@ function renderDetail(id){
       ?`object-fit:cover;width:${gsz}%;height:${gsz}%;position:absolute;left:${-(gsz-100)*gpos.x/100}%;top:${-(gsz-100)*gpos.y/100}%;`
       :`object-fit:cover;width:100%;height:100%;object-position:${gpos.x}% ${gpos.y}%;`;
     const pairTag=(cat.galPairTag&&cat.galPairTag[gi])||'';
-    return `<div class="gimgwrap${pairTag?' has-pair-tag':''}" data-gi="${gi}" data-pairtag="${pairTag}" onclick="if(!this._wasDragging)openLbox('${src.replace(/'/g,"\\'")}')">
+    const galToken=(cat.galToken&&cat.galToken[gi])||'';
+    const galTokenColor=(cat.galTokenColor&&cat.galTokenColor[gi])||'rgba(0,0,0,0.55)';
+    const hasToken=!!galToken;
+    return `<div class="gimgwrap${pairTag?' has-pair-tag':''}${hasToken?' has-token':''}" data-gi="${gi}" data-pairtag="${pairTag}" onclick="if(!this._wasDragging)openLbox('${src.replace(/'/g,"\\'")}')">
       <img src="${src}" alt="" style="${gst}">
+      ${hasToken?`<div class="gal-token-overlay" style="background:${galTokenColor};"><span class="gal-token-text">${esc(galToken)}</span></div>`:''}
       ${IS_VIEW?'':`
       <button class="gimgdel" onclick="event.stopPropagation();delGalImg('${cat.id}',${gi})">✕</button>
       <button class="gimgpos-btn" onclick="event.stopPropagation();openGalImgPos('${cat.id}',${gi})" title="위치/크기">⤢</button>
       <button class="gal-tag-btn" onclick="event.stopPropagation();setGalPairTag('${cat.id}',${gi})" title="페어 지정">🏷</button>
+      <button class="gal-tok-btn" onclick="event.stopPropagation();editGalToken('${cat.id}',${gi})" title="토큰 ON/OFF">T</button>
       <div class="gimg-drag-handle" title="드래그로 순서 변경">⠿</div>`}
       ${pairTag?`<div class="gal-pair-label">${esc(pairTag)}</div>`:''}
     </div>`;
@@ -2211,9 +2274,16 @@ function pickEmoji(el){
 
 // ── CATMODAL 그룹 select ──
 function fillCatGroupSelect(currentGroupId){
-  const sel=document.getElementById('catgroup');if(!sel)return;
+  const wrap=document.getElementById('catgroup-wrap');if(!wrap)return;
   const groups=getGroups();
+  if(!groups.length){
+    wrap.innerHTML=`<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;font-size:11.5px;color:var(--dim);">그룹 없음&ensp;<button onclick="event.preventDefault();closeCatModal();openGroupModal();" style="margin-left:auto;font-size:10.5px;font-weight:700;color:var(--cs);background:none;border:none;cursor:pointer;font-family:inherit;padding:0;">+ 그룹 추가 →</button></div>`;
+    return;
+  }
+  const sel=document.createElement('select');
+  sel.id='catgroup';sel.className='finput';
   sel.innerHTML='<option value="">없음</option>'+groups.map(g=>`<option value="${g.id}" ${g.id===currentGroupId?'selected':''}>${esc(g.name)}</option>`).join('');
+  wrap.innerHTML='';wrap.appendChild(sel);
 }
 
 // ── 사이드바 추가 버튼 ──
