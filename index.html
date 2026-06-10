@@ -10,7 +10,6 @@
 <link rel="preload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" as="script">
 <link rel="preload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js" as="script">
 <link rel="preload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js" as="script">
-<link rel="preload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js" as="script">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -289,11 +288,6 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .schap:hover{background:rgba(196,224,255,.38);transform:translateY(-1px);}
 
 /* PAIR */
-.pairsec{margin-top:12px;margin-bottom:12px;}
-.pairhead{display:flex;align-items:center;justify-content:space-between;padding:7px 0 10px;}
-.pairtitle{font-size:11.5px;font-weight:700;cursor:pointer;background:none;border:none;font-family:inherit;color:var(--text);padding:0;outline:none;}
-.pairtitle:hover{color:var(--cs);}
-.pairtitle-input{font-size:11.5px;font-weight:700;background:none;border:none;border-bottom:1.5px solid var(--sky2);outline:none;font-family:inherit;color:var(--text);width:120px;padding:0;}
 .pairempty{padding:14px 0;font-size:11.5px;color:var(--dim);}
 /* 새 페어 카드 */
 .paircard2{background:var(--white);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:10px;position:relative;}
@@ -319,11 +313,6 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .pc2-allacts{display:flex;gap:5px;padding:5px 13px 8px;justify-content:flex-end;}
 .pc2-allcopy{padding:4px 12px;border-radius:7px;border:1px solid var(--border);background:var(--bg);font-family:inherit;font-size:10.5px;font-weight:600;color:var(--muted);cursor:pointer;}
 .pc2-allcopy:hover{border-color:var(--sky2);color:var(--cs);}
-/* legacy 호환 */
-.paircard{display:none;}
-.pairtags{display:flex;flex-wrap:wrap;gap:3px;}
-.pair-dplus{font-size:10px;font-weight:500;color:var(--cp);font-family:'DM Mono',monospace;opacity:.85;}
-.pairacts{display:flex;gap:4px;flex-shrink:0;}
 
 /* ENTRY 섹션별 구조 */
 .entry-sec{margin-bottom:6px;}
@@ -697,6 +686,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
   </div>
 </div>
 
+<!-- MERGE BAR -->
 <div class="mbar" id="mbar">
   <div class="mbar-left">
     <div class="mbar-hd"><span class="mbar-title">✨ 통합 복사</span><span class="mcnt" id="mcnt">0개</span><button class="mclr" onclick="clearSel()">해제</button></div>
@@ -707,6 +697,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
 
 <div class="lbox" id="lbox" onclick="closeLbox()"><button class="lboxclose">×</button><img id="lboximg" src="" alt=""></div>
 
+<!-- SHARE -->
 <div class="sharepop" id="sharepop" onmousedown="if(event.target===this)closeSharePop()">
   <div class="sharebox">
     <div class="sharetitle">🔗 공유 링크 <button class="shareclose" onclick="closeSharePop()">×</button></div>
@@ -726,6 +717,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
 
 <div class="toast" id="toast"></div>
 
+<!-- CAT MODAL -->
 <div class="overlay" id="catmodal" onmousedown="if(event.target===this)closeCatModal()">
   <div class="modal" onmousedown="event.stopPropagation()">
     <div class="mhead"><div class="mtitle" id="catmodaltitle">카테고리 추가</div><button class="mclose" onclick="closeCatModal()">×</button></div>
@@ -756,6 +748,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
   </div>
 </div>
 
+<!-- ENTRY MODAL -->
 <div class="overlay" id="entrymodal" onmousedown="if(event.target===this)closeEntryModal()">
   <div class="modal" onmousedown="event.stopPropagation()">
     <div class="mhead"><div class="mtitle">항목 추가</div><button class="mclose" onclick="closeEntryModal()">×</button></div>
@@ -767,6 +760,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
   </div>
 </div>
 
+<!-- PAIR MODAL -->
 <div class="overlay" id="pairmodal" onmousedown="if(event.target===this)closePairModal()">
   <div class="modal" onmousedown="event.stopPropagation()" style="width:520px">
     <div class="mhead"><div class="mtitle" id="pairmodaltitle">💘 Pair 추가</div><button class="mclose" onclick="closePairModal()">×</button></div>
@@ -802,6 +796,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
   </div>
 </div>
 
+<!-- TAG EDIT -->
 <div class="overlay" id="tageditmodal" onmousedown="if(event.target===this)closeTagEdit()">
   <div class="modal" onmousedown="event.stopPropagation()" style="width:520px">
     <div class="mhead"><div class="mtitle" id="tagedit-title">태그 편집</div><button class="mclose" onclick="closeTagEdit()">×</button></div>
@@ -813,6 +808,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
   </div>
 </div>
 
+<!-- GROUP MODAL -->
 <div class="overlay" id="groupmodal" onmousedown="if(event.target===this)closeGroupModal()">
   <div class="modal" onmousedown="event.stopPropagation()">
     <div class="mhead"><div class="mtitle">그룹 관리</div><button class="mclose" onclick="closeGroupModal()">×</button></div>
@@ -821,6 +817,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
   </div>
 </div>
 
+<!-- STYLE PANEL (테마+카드 통합) -->
 <div class="popup" id="stylepanel" onmousedown="if(event.target===this)closeStylePanel()">
   <div class="popbox" onmousedown="event.stopPropagation()" style="width:500px;max-height:88vh;overflow-y:auto;">
     <div class="pop-title">🎨 스타일 <button class="pop-close" onclick="closeStylePanel()">×</button></div>
@@ -903,6 +900,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
   </div>
 </div>
 
+<!-- PROFILE EDITOR POPUP -->
 <div class="profile-popup" id="profilepopup" onmousedown="if(event.target===this)closeProfileEditor()">
   <div class="profile-editor" onmousedown="event.stopPropagation()">
     <div class="pe-head">
@@ -913,6 +911,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
       </div>
     </div>
     <div class="pe-body">
+      <!-- 왼쪽: 입력 패널 -->
       <div class="pe-panel" id="pe-panel">
         <div class="pe-section">
           <div class="pe-sec-label">기본 정보</div>
@@ -997,6 +996,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
           </div>
         </div>
       </div>
+      <!-- 오른쪽: 미리보기 -->
       <div class="pe-preview" id="pe-preview">
         <div class="pe-preview-inner" id="pe-preview-inner"></div>
       </div>
@@ -1012,7 +1012,7 @@ const VIEW_SLUG=params.get('v')||'';
 const VIEW_UID=params.get('uid')||'';
 const PAIR_KEY=params.get('pair')||'';
 
-let fbDB=null,fbAuth=null,fbStorage=null,currentUser=null;
+let fbDB=null,fbAuth=null,currentUser=null;
 let cache={artist:[],style:[]};
 let tab='artist',selId=null,editCatId=null,entryTarget=null;
 let pendingAv=null,pendingPairAv=null;
@@ -1040,8 +1040,7 @@ function loadFirebase(){
   const SDKS=[
     'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
     'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js',
-    'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js',
-    'https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js'
+    'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js'
   ];
   let done=0;
   SDKS.forEach(src=>{
@@ -1050,7 +1049,6 @@ function loadFirebase(){
       firebase.initializeApp(FB);
       fbDB=firebase.database();
       fbAuth=firebase.auth();
-      fbStorage=firebase.storage();
       fbAuth.onAuthStateChanged(onAuth);
     }};
     document.head.appendChild(s);
@@ -1171,40 +1169,28 @@ function resizeImg(dataUrl,maxSize,q,cb){
   };img.src=dataUrl;
 }
 
-// DB 렉 방지를 위해 아바타 용량도 800px로 소폭 줄여서 저장
+// DB 렉 방지를 위해 아바타 용량 800px로 압축
 function onProfileFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>resizeImg(ev.target.result,800,.85,b64=>{pendingAv=b64;document.getElementById('pavprev').innerHTML=`<img src="${b64}" alt="">`;});r.readAsDataURL(f);}
 function onPairProfileFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>resizeImg(ev.target.result,800,.85,b64=>{pendingPairAv=b64;document.getElementById('pairpavprev').innerHTML=`<img src="${b64}" alt="">`;});r.readAsDataURL(f);}
 
-// ★ 핵심 갤러리 업로드 부분 (Storage 연동)
+// 갤러리 업로드 최적화 (1000px, 0.85 압축)
 function onGalleryFile(e,catId){
   if(IS_VIEW)return;
   const files=Array.from(e.target.files);if(!files.length)return;
   const cat=(cache[tab]||[]).find(c=>c.id===catId);if(!cat)return;
   if(!cat.gallery)cat.gallery=[];
   
-  toast('이미지 업로드 중... ⏳');
+  toast('이미지 처리 중... ⏳');
   let done=0;
   
   files.forEach(f=>{
     const r=new FileReader();
     r.onload=ev=>{
-      // 고화질 1800 유지, 압축률 0.92
-      resizeImg(ev.target.result, 1800, .92, b64=>{
-        const blob = dataURItoBlob(b64);
-        const ext = f.name.split('.').pop() || 'jpg';
-        const filePath = `gallery/${currentUser.uid}/${catId}_${Date.now()}_${Math.floor(Math.random()*1000)}.${ext}`;
-        const ref = fbStorage.ref().child(filePath);
-        
-        ref.put(blob).then(snapshot => snapshot.ref.getDownloadURL())
-        .then(url => {
-          cat.gallery.push(url);
-          if(++done===files.length){
-            saveDB(); renderDetail(selId); toast('✅ 업로드 완료!');
-          }
-        }).catch(err => {
-          console.error(err); toast('❌ 업로드 실패!');
-          if(++done===files.length) renderDetail(selId);
-        });
+      resizeImg(ev.target.result, 1000, .85, b64=>{
+        cat.gallery.push(b64);
+        if(++done===files.length){
+          saveDB(); renderDetail(selId); toast('✅ 업로드 완료!');
+        }
       });
     };
     r.readAsDataURL(f);
@@ -1215,20 +1201,12 @@ function onGalleryFile(e,catId){
 function delGalImg(catId,idx){
   if(IS_VIEW)return;
   const cat=(cache[tab]||[]).find(c=>c.id===catId);if(!cat)return;
-  const src = cat.gallery[idx];
   
   cat.gallery.splice(idx,1);
   if(cat.galPos)delete cat.galPos[idx];
   if(cat.galPairTag)delete cat.galPairTag[idx];
   
   saveDB();renderDetail(selId);
-  
-  // Storage에 올렸던 이미지라면 Storage 파일도 같이 삭제
-  if(src && src.includes('firebasestorage.googleapis.com')){
-    try{
-      fbStorage.refFromURL(src).delete();
-    }catch(e){console.error('Storage del err', e);}
-  }
 }
 
 function filterGallery(catId,pairTag,btn){
@@ -1683,17 +1661,18 @@ function renderDetail(id){
     <div class="sumchips">${allTags.map(t=>`<span class="schap" onclick="cpTag('${esc(t)}')">${esc(t)}</span>`).join('')}</div>
   </div>`:'';
 
-  const pairSep=`<div style="height:1px;background:var(--border);margin:16px 0 4px;"></div>`;
-  const pairTitle=cat.pairTitle||'💘 Pair';
+  const pairTitle=cat.pairTitle||'Pair';
   const parseTags=v=>(v||[]).filter(Boolean);
-  const pairHtml=(tab==='artist'&&(!IS_VIEW||pair.some(p=>p.startDate||(p.tagsLook||[]).length||(p.tagsOutfit||[]).length||(p.tagsEtc||[]).length||(p.tags||[]).length)))?`<div class="pairsec">
-    <div class="pairhead">
+  
+  // 페어 UI 시각적 분리 (독립된 박스 적용)
+  const pairHtml=(tab==='artist'&&(!IS_VIEW||pair.some(p=>p.startDate||(p.tagsLook||[]).length||(p.tagsOutfit||[]).length||(p.tagsEtc||[]).length||(p.tags||[]).length)))?`<div class="pairsec" style="background:var(--white); border:1px solid var(--border); border-radius:12px; padding:16px; margin-top:16px;">
+    <div class="pairhead" style="padding-top:0; border-bottom:1px solid var(--border); margin-bottom:12px;">
       ${IS_VIEW
-        ?`<div class="pairtitle">${esc(pairTitle)}</div>`
-        :`<button class="pairtitle" ondblclick="editPairTitle('${cat.id}',this)">${esc(pairTitle)}</button>`}
-      ${IS_VIEW?'':`<button class="scpbtn" onclick="openPairModal('${cat.id}')" style="font-size:10px;padding:4px 10px">+ 추가</button>`}
+        ?`<div class="pairtitle" style="font-size:13px; color:var(--text);">💘 ${esc(pairTitle)}</div>`
+        :`<button class="pairtitle" style="font-size:13px; color:var(--text);" ondblclick="editPairTitle('${cat.id}',this)">💘 ${esc(pairTitle)}</button>`}
+      ${IS_VIEW?'':`<button class="scpbtn" onclick="openPairModal('${cat.id}')" style="font-size:10px;padding:4px 10px">+ 페어 추가</button>`}
     </div>
-    ${!pair.length?`<div class="pairempty">Pair를 추가해보세요</div>`:
+    ${!pair.length?`<div class="pairempty" style="padding-top:0;">Pair를 추가해보세요</div>`:
       pair.map((p,pi)=>{
         const dplus=p.startDate?calcDPlus(p.startDate):'';
         const tagsLook=parseTags(p.tagsLook);
@@ -1738,7 +1717,7 @@ function renderDetail(id){
   const showGal=hasGallery||!IS_VIEW;
 
   const galPairs=[{id:'',name:'전체'},...pair.map(p=>({id:p.name,name:p.name}))];
-  const filterTabs=hasGallery?`<div class="gal-filter">
+  const filterTabs=hasGallery?`<div class="gal-filter" style="margin-bottom:0;">
     ${galPairs.map(p=>`<button class="gal-ftab${p.id===''?' on':''}" onclick="filterGallery('${cat.id}','${p.id}',this)">${esc(p.name)}</button>`).join('')}
   </div>`:'';
 
@@ -1765,8 +1744,14 @@ function renderDetail(id){
     </div>`;
   }).join('');
 
-  const galHtml=showGal?`<div class="cgal-section">
-    ${hasGallery?`<div class="cgal-label">갤러리</div>${filterTabs}`:''}
+  // 갤러리 UI 시각적 분리 (독립된 박스 적용)
+  const galHtml=showGal?`<div class="cgal-section" style="background:var(--white); border:1px solid var(--border); border-radius:12px; padding:16px; margin-top:16px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+      <div style="font-size:13px; font-weight:700; color:var(--text); display:flex; align-items:center; gap:6px;">
+        🖼️ 갤러리 <span style="font-family:'DM Mono',monospace; font-size:10px; color:var(--cs); background:rgba(196,224,255,.3); padding:2px 7px; border-radius:10px;">${gallery.length}장</span>
+      </div>
+      ${filterTabs}
+    </div>
     <div class="gallery" id="gallery-${cat.id}">
       ${galImgsHtml}
       ${IS_VIEW?'':`<button class="gadd" onclick="document.getElementById('galinput_${cat.id}').click()">
@@ -1811,7 +1796,7 @@ function renderDetail(id){
     <div class="dtab-pane on" id="dtpane-tags">
       <div class="entries">${entriesHtml}</div>
       ${IS_VIEW?'':`<button class="addebtn" onclick="openAddEntry('${cat.id}')">+ 항목 추가</button>`}
-      ${sumHtml}${pairSep}${pairHtml}${galHtml}
+      ${sumHtml}${pairHtml}${galHtml}
     </div>
     ${profilePaneHtml||''}`;
 
@@ -2630,20 +2615,6 @@ function openProfileEditor(catId){
 }
 
 function closeProfileEditor(){document.getElementById('profilepopup').classList.remove('on');}
-
-function peLoadImg(e){
-  const f=e.target.files[0];if(!f)return;
-  const r=new FileReader();
-  r.onload=ev=>resizeImg(ev.target.result,800,.85,b64=>{
-    peState.img=b64;
-    document.getElementById('pe-img-thumb').src=b64;
-    document.getElementById('pe-img-preview').style.display='';
-    document.getElementById('pe-img-zone').style.display='none';
-    peSync();
-  });
-  r.readAsDataURL(f);
-  e.target.value='';
-}
 
 function peRemoveImg(){
   peState.img='';
