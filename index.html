@@ -24,7 +24,7 @@
 body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;}
 
 /* LOGIN */
-.loginscreen{height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--sky),var(--pink));position:fixed;inset:0;z-index:99999;}
+.loginscreen{height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--sky),var(--pink));}
 .loginbox{background:var(--white);border-radius:20px;padding:40px 36px;width:340px;display:flex;flex-direction:column;align-items:center;gap:20px;text-align:center;box-shadow:0 20px 60px rgba(160,140,200,.25);}
 .loginlogo{font-size:42px;}.logintitle{font-size:20px;font-weight:700;}.loginsub{font-size:13px;color:var(--muted);line-height:1.6;}
 .googlebtn{display:flex;align-items:center;gap:10px;padding:12px 24px;border-radius:10px;border:1.5px solid var(--border);background:var(--white);font-family:inherit;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;width:100%;justify-content:center;transition:all .15s;}
@@ -639,7 +639,7 @@ body.viewer.hide-dday #mtab-dday{display:none !important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v86</span>
+      <span class="vbadge">v87</span>
       <button class="hbtn vonly" onclick="openStylePanel()">🎨 스타일</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">공유</button>
@@ -1076,7 +1076,7 @@ function onAuth(user){
   }
 }
 
-function signIn(){if(!fbAuth)return alert('잠시 후 다시 시도해주세요.');const p=new firebase.auth.GoogleAuthProvider();fbAuth.signInWithPopup(p).catch(e=>alert('로그인 실패: '+e.message));}
+function signIn(){const p=new firebase.auth.GoogleAuthProvider();fbAuth.signInWithPopup(p).catch(e=>alert('로그인 실패: '+e.message));}
 function signOut(){fbAuth.signOut();}
 
 let fbGroups={artist:[],style:[]};
