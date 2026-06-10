@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TagVault</title>
+<title>태그보관</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -616,7 +616,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v85</span>
+      <span class="vbadge">v86</span>
       <button class="hbtn vonly" onclick="openStylePanel()">🎨 스타일</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">공유</button>
@@ -1045,7 +1045,20 @@ function onAuth(user){
   }
 }
 
-function signIn(){const p=new firebase.auth.GoogleAuthProvider();fbAuth.signInWithPopup(p).catch(e=>alert('로그인 실패: '+e.message));}
+function signIn(){
+  if(!fbAuth){
+    // Firebase 아직 로드 중 - 잠시 후 재시도
+    const btn=document.querySelector('.googlebtn');
+    if(btn){btn.textContent='로딩 중...';btn.disabled=true;}
+    setTimeout(()=>{
+      if(btn){btn.innerHTML='<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" style="width:20px;height:20px;"> Google로 로그인';btn.disabled=false;}
+      if(fbAuth)signIn();
+    },2000);
+    return;
+  }
+  const p=new firebase.auth.GoogleAuthProvider();
+  fbAuth.signInWithPopup(p).catch(e=>alert('로그인 실패: '+e.message));
+}
 function signOut(){fbAuth.signOut();}
 
 let fbGroups={artist:[],style:[]};// Firebase에서 받은 그룹 캐시
