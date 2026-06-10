@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>TagVault</title>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" as="script">
+<link rel="preload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js" as="script">
+<link rel="preload" href="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js" as="script">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -630,7 +636,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v80</span>
+      <span class="vbadge">v81</span>
       <button class="hbtn vonly" onclick="openStylePanel()">🎨 스타일</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">공유</button>
@@ -1010,15 +1016,18 @@ let imgPosCatId=null,imgPosX=50,imgPosY=50,imgPosSize=100,imgPosGalIdx=-1;
 
 // ── FIREBASE ──
 function loadFirebase(){
-  const load=(src,cb)=>{const s=document.createElement('script');s.src=src;s.onload=cb;document.head.appendChild(s);};
-  load('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',()=>
-  load('https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js',()=>
-  load('https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js',()=>{
-    firebase.initializeApp(FB);
-    fbDB=firebase.database();
-    fbAuth=firebase.auth();
-    fbAuth.onAuthStateChanged(onAuth);
-  })));
+  // 세 SDK 병렬 로드 후 모두 완료되면 초기화
+  const SDKS=[
+    'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
+    'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js',
+    'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js'
+  ];
+  let done=0;
+  SDKS.forEach(src=>{
+    const s=document.createElement('script');s.src=src;
+    s.onload=()=>{if(++done===SDKS.length){firebase.initializeApp(FB);fbDB=firebase.database();fbAuth=firebase.auth();fbAuth.onAuthStateChanged(onAuth);}};
+    document.head.appendChild(s);
+  });
 }
 
 function onAuth(user){
@@ -1047,6 +1056,12 @@ function onAuth(user){
     });
     loadStyleShare();
     updateSbAddBtn();
+    // 로컬 캐시 즉시 렌더링 (Firebase 응답 전에 빠르게 표시)
+    try{
+      const lc=localStorage.getItem('tv_cache_'+user.uid);
+      const lg=localStorage.getItem('tv_groups_'+user.uid);
+      if(lc){cache=JSON.parse(lc);if(lg)fbGroups=JSON.parse(lg);renderSidebar();renderOverview();}
+    }catch(e){}
     listenData(user.uid);
   }else{
     document.getElementById('loginscreen').style.display='flex';
@@ -1066,6 +1081,8 @@ function listenData(uid){
       artist:v.artist?Object.values(v.artist):[],
       style:v.style?Object.values(v.style):[]
     };
+    // 로컬 캐시 저장 (다음 로딩 시 즉시 표시)
+    try{localStorage.setItem('tv_cache_'+uid,JSON.stringify(cache));}catch(e){}
     renderSidebar();renderOverview();
     if(selId)renderDetail(selId);
   });
@@ -1089,6 +1106,7 @@ function listenData(uid){
       artist:toArr(v.artist),
       style:toArr(v.style)
     };
+    try{localStorage.setItem('tv_groups_'+uid,JSON.stringify(fbGroups));}catch(e){}
     renderOverview();
   });
   fbDB.ref('users/'+uid+'/settings').on('value',snap=>{
