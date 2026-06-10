@@ -45,8 +45,8 @@ header{grid-column:1/-1;display:flex;align-items:center;padding:0 14px;gap:6px;b
 
 /* SIDEBAR */
 .sidebar{background:var(--white);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
-.sb-top{padding:12px 12px 8px;flex-shrink:0;}.sb-top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}.sb-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);padding:0 4px;}.sb-inline-add{background:none;border:none;font-size:11px;font-weight:700;color:var(--cs);cursor:pointer;padding:2px 6px;border-radius:6px;font-family:inherit;opacity:.8;}.sb-inline-add:hover{opacity:1;background:var(--sky);}
-
+.sb-top{padding:12px 12px 8px;flex-shrink:0;}
+.sb-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);padding:0 4px;margin-bottom:6px;}
 .sbox{display:flex;align-items:center;gap:6px;background:var(--bg);border-radius:7px;padding:6px 9px;border:1px solid transparent;transition:border-color .14s;}
 .sbox:focus-within{border-color:var(--sky2);}
 .sbox svg{color:var(--dim);flex-shrink:0;}
@@ -399,7 +399,7 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .tag-del-btn:hover{color:var(--cp);}
 
 /* EMOJI PICKER */
-.emoji-opt{font-size:14px;cursor:pointer;padding:2px;border-radius:5px;transition:background .12s;line-height:1;}
+.emoji-opt{font-size:18px;cursor:pointer;padding:3px;border-radius:6px;transition:background .12s;line-height:1;}
 .emoji-opt:hover{background:var(--sky);}
 
 /* STYLE PANEL (테마+카드 통합) */
@@ -596,9 +596,9 @@ body.viewer.hide-style #mtab-style{display:none !important;}
 
 <div class="loginscreen" id="loginscreen">
   <div class="loginbox">
-    <div class="loginlogo"></div>
+    <div class="loginlogo">🏷️</div>
     <div class="logintitle">TagVault</div>
-    <div class="loginsub">계정으로 로그인하면<br>나만의 태그 저장소를 만들 수 있어요</div>
+    <div class="loginsub">구글 계정으로 로그인하면<br>나만의 태그 저장소를 만들 수 있어요</div>
     <button class="googlebtn" onclick="signIn()">
       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="">
       Google로 로그인
@@ -608,7 +608,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
 
 <div class="app" id="app">
   <header>
-    <div class="logo">TagVault <span class="logo-dot"></span></div>
+    <div class="logo">🏷️ TagVault <span class="logo-dot"></span></div>
     <div class="hdiv"></div>
     <div class="htabs">
       <button class="htab on" data-tab="artist" onclick="switchTab('artist')" ondblclick="editTabName('artist',this)"><span id="tlab-artist">캐릭터명단</span></button>
@@ -629,10 +629,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
   <div class="sidebar" id="sidebar">
     <div class="sb-handle"></div>
     <div class="sb-top">
-      <div class="sb-top-row">
-        <div class="sb-label" id="sblabel">캐릭터명단</div>
-        <button class="sb-inline-add" id="sb-inline-add" onclick="openAddCat()" style="display:none">+ 추가</button>
-      </div>
+      <div class="sb-label" id="sblabel">캐릭터명단</div>
       <div class="sbox">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         <input type="text" placeholder="검색..." id="searchInput" oninput="renderSidebar()">
@@ -640,7 +637,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
     </div>
     <div class="catlist" id="catlist"></div>
     <div class="sbfoot" id="sbfoot"></div>
-
+    <div id="sb-addbtn-wrap" style="display:none;padding:8px 12px;border-top:1px solid var(--border);"><button onclick="openAddCat()" style="width:100%;padding:7px;border:1.5px dashed var(--dim);border-radius:8px;background:none;font-family:inherit;font-size:12px;font-weight:600;color:var(--cs);cursor:pointer;">+ 추가</button></div>
   </div>
 
   <div class="main" id="mainarea">
@@ -719,14 +716,15 @@ body.viewer.hide-style #mtab-style{display:none !important;}
       <div class="field"><label>이름</label><input class="finput" id="catname" placeholder="예: 호무라"></div>
       <div class="field"><label>태그 식별자 (옵션)</label><input class="finput" id="cattag" placeholder="예: artist:호무라"></div>
       <div class="field"><label>이모지</label>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <input class="finput" id="catemoji" placeholder="🎨" maxlength="4" style="width:64px;">
-          <button type="button" onclick="openEmojiPicker(this)" style="padding:5px 10px;border:1px solid var(--border);border-radius:7px;background:var(--bg);font-size:12px;cursor:pointer;font-family:inherit;color:var(--muted);">선택 ▾</button>
-        </div>
-        <!-- 이모지 팝업 -->
-        <div id="emoji-popup" style="display:none;position:absolute;z-index:10000;background:var(--white);border:1px solid var(--border);border-radius:12px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,.15);">
-          <div style="display:flex;flex-wrap:wrap;gap:2px;width:240px;">
-            <span class="emoji-opt" onclick="pickEmoji(this)">🎨</span><span class="emoji-opt" onclick="pickEmoji(this)">✨</span><span class="emoji-opt" onclick="pickEmoji(this)">💫</span><span class="emoji-opt" onclick="pickEmoji(this)">🌟</span><span class="emoji-opt" onclick="pickEmoji(this)">⚡</span><span class="emoji-opt" onclick="pickEmoji(this)">🔥</span><span class="emoji-opt" onclick="pickEmoji(this)">💎</span><span class="emoji-opt" onclick="pickEmoji(this)">🌙</span><span class="emoji-opt" onclick="pickEmoji(this)">☀️</span><span class="emoji-opt" onclick="pickEmoji(this)">🌸</span><span class="emoji-opt" onclick="pickEmoji(this)">🌺</span><span class="emoji-opt" onclick="pickEmoji(this)">🌹</span><span class="emoji-opt" onclick="pickEmoji(this)">🍀</span><span class="emoji-opt" onclick="pickEmoji(this)">🦋</span><span class="emoji-opt" onclick="pickEmoji(this)">🐾</span><span class="emoji-opt" onclick="pickEmoji(this)">👑</span><span class="emoji-opt" onclick="pickEmoji(this)">🗡️</span><span class="emoji-opt" onclick="pickEmoji(this)">🏹</span><span class="emoji-opt" onclick="pickEmoji(this)">🎭</span><span class="emoji-opt" onclick="pickEmoji(this)">🎯</span><span class="emoji-opt" onclick="pickEmoji(this)">🔮</span><span class="emoji-opt" onclick="pickEmoji(this)">💀</span><span class="emoji-opt" onclick="pickEmoji(this)">🌊</span><span class="emoji-opt" onclick="pickEmoji(this)">❄️</span><span class="emoji-opt" onclick="pickEmoji(this)">🌪️</span><span class="emoji-opt" onclick="pickEmoji(this)">🎵</span><span class="emoji-opt" onclick="pickEmoji(this)">🎸</span><span class="emoji-opt" onclick="pickEmoji(this)">🏷️</span><span class="emoji-opt" onclick="pickEmoji(this)">🔑</span><span class="emoji-opt" onclick="pickEmoji(this)">💘</span><span class="emoji-opt" onclick="pickEmoji(this)">🎀</span><span class="emoji-opt" onclick="pickEmoji(this)">🐉</span><span class="emoji-opt" onclick="pickEmoji(this)">🦊</span><span class="emoji-opt" onclick="pickEmoji(this)">🐺</span><span class="emoji-opt" onclick="pickEmoji(this)">🐈</span><span class="emoji-opt" onclick="pickEmoji(this)">🌴</span><span class="emoji-opt" onclick="pickEmoji(this)">🍁</span><span class="emoji-opt" onclick="pickEmoji(this)">🌿</span><span class="emoji-opt" onclick="pickEmoji(this)">🍄</span><span class="emoji-opt" onclick="pickEmoji(this)">🦋</span><span class="emoji-opt" onclick="pickEmoji(this)">🌈</span><span class="emoji-opt" onclick="pickEmoji(this)">🔭</span><span class="emoji-opt" onclick="pickEmoji(this)">⚗️</span><span class="emoji-opt" onclick="pickEmoji(this)">🧿</span><span class="emoji-opt" onclick="pickEmoji(this)">🪬</span><span class="emoji-opt" onclick="pickEmoji(this)">🧸</span><span class="emoji-opt" onclick="pickEmoji(this)">🎲</span><span class="emoji-opt" onclick="pickEmoji(this)">♟️</span><span class="emoji-opt" onclick="pickEmoji(this)">🎪</span><span class="emoji-opt" onclick="pickEmoji(this)">🃏</span>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:5px;">
+          <input class="finput" id="catemoji" placeholder="🎨" maxlength="4" style="width:70px;">
+          <div style="display:flex;flex-wrap:wrap;gap:4px;" id="emoji-picker">
+            <span class="emoji-opt" onclick="pickEmoji(this)">🎨</span><span class="emoji-opt" onclick="pickEmoji(this)">✨</span><span class="emoji-opt" onclick="pickEmoji(this)">💫</span><span class="emoji-opt" onclick="pickEmoji(this)">🌟</span><span class="emoji-opt" onclick="pickEmoji(this)">⚡</span>
+            <span class="emoji-opt" onclick="pickEmoji(this)">🔥</span><span class="emoji-opt" onclick="pickEmoji(this)">💎</span><span class="emoji-opt" onclick="pickEmoji(this)">🌙</span><span class="emoji-opt" onclick="pickEmoji(this)">☀️</span><span class="emoji-opt" onclick="pickEmoji(this)">🌸</span>
+            <span class="emoji-opt" onclick="pickEmoji(this)">🌺</span><span class="emoji-opt" onclick="pickEmoji(this)">🌹</span><span class="emoji-opt" onclick="pickEmoji(this)">🍀</span><span class="emoji-opt" onclick="pickEmoji(this)">🦋</span><span class="emoji-opt" onclick="pickEmoji(this)">🐾</span>
+            <span class="emoji-opt" onclick="pickEmoji(this)">👑</span><span class="emoji-opt" onclick="pickEmoji(this)">🗡️</span><span class="emoji-opt" onclick="pickEmoji(this)">🏹</span><span class="emoji-opt" onclick="pickEmoji(this)">🎭</span><span class="emoji-opt" onclick="pickEmoji(this)">🎪</span>
+            <span class="emoji-opt" onclick="pickEmoji(this)">🎯</span><span class="emoji-opt" onclick="pickEmoji(this)">🔮</span><span class="emoji-opt" onclick="pickEmoji(this)">💀</span><span class="emoji-opt" onclick="pickEmoji(this)">🌊</span><span class="emoji-opt" onclick="pickEmoji(this)">❄️</span>
+            <span class="emoji-opt" onclick="pickEmoji(this)">🌪️</span><span class="emoji-opt" onclick="pickEmoji(this)">🎵</span><span class="emoji-opt" onclick="pickEmoji(this)">🎸</span><span class="emoji-opt" onclick="pickEmoji(this)">🏷️</span><span class="emoji-opt" onclick="pickEmoji(this)">🔑</span>
           </div>
         </div>
       </div>
@@ -801,7 +799,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
 
 <!-- STYLE PANEL (테마+카드 통합) -->
 <div class="popup" id="stylepanel" onmousedown="if(event.target===this)closeStylePanel()">
-  <div class="popbox" onmousedown="event.stopPropagation()" style="width:500px;">
+  <div class="popbox" onmousedown="event.stopPropagation()" style="width:500px;max-height:88vh;overflow-y:auto;">
     <div class="pop-title">🎨 스타일 <button class="pop-close" onclick="closeStylePanel()">×</button></div>
 
     <div><div class="pop-section-label">카드 비율</div>
@@ -2248,7 +2246,7 @@ function openStylePanel(){
     if(sw)sw.style.background=val;if(pk&&val.startsWith('#'))pk.value=val;if(hx)hx.value=val;
   });
   document.getElementById('stylepanel').classList.add('on');
-  renderCustomPresets();
+}
 function closeStylePanel(){document.getElementById('stylepanel').classList.remove('on');}
 // 하위 호환 (기존 코드에서 호출하는 경우)
 function openTheme(){openStylePanel();}
@@ -2257,63 +2255,8 @@ function openCardStyle(){openStylePanel();}
 function closeCardStyle(){closeStylePanel();}
 
 // ── EMOJI PICKER ──
-function openEmojiPicker(btn){
-  const popup=document.getElementById('emoji-popup');
-  if(!popup)return;
-  if(popup.style.display==='none'||!popup.style.display){
-    popup.style.display='block';
-    // 팝업이 모달 밖으로 나가지 않도록 위치 조정
-    const rect=btn.getBoundingClientRect();
-    popup.style.position='fixed';
-    popup.style.top=(rect.bottom+4)+'px';
-    popup.style.left=rect.left+'px';
-    // 클릭 외부 닫기
-    setTimeout(()=>{
-      const close=e=>{if(!popup.contains(e.target)&&e.target!==btn){popup.style.display='none';document.removeEventListener('click',close);}};
-      document.addEventListener('click',close);
-    },10);
-  } else {
-    popup.style.display='none';
-  }
-}
 function pickEmoji(el){
   document.getElementById('catemoji').value=el.textContent;
-  const popup=document.getElementById('emoji-popup');
-  if(popup)popup.style.display='none';
-}
-
-// ── CUSTOM THEME PRESETS ──
-function getCustomPresets(){return JSON.parse(localStorage.getItem('tv_custom_presets')||'[]');}
-function saveCustomPresets(arr){localStorage.setItem('tv_custom_presets',JSON.stringify(arr));}
-
-function saveCustomPreset(){
-  const t={};
-  ['bg','sky','sky2','pink','pink2','border','cs','cp'].forEach(k=>t[k]=getComputedStyle(document.documentElement).getPropertyValue('--'+k).trim());
-  const name=prompt('프리셋 이름','내 테마 '+(getCustomPresets().length+1));
-  if(!name)return;
-  t.name=name;
-  const arr=getCustomPresets();arr.push(t);saveCustomPresets(arr);
-  renderCustomPresets();toast('프리셋 저장됨!');
-}
-
-function renderCustomPresets(){
-  const wrap=document.getElementById('custom-presets');if(!wrap)return;
-  const arr=getCustomPresets();
-  if(!arr.length){wrap.innerHTML='';return;}
-  wrap.innerHTML=arr.map((p,i)=>`
-    <div style="display:flex;align-items:center;gap:4px;">
-      <div class="theme-preset" style="background:linear-gradient(135deg,${p.sky2||'#c4e0ff'},${p.pink2||'#f8cce4'})" onclick="applyCustomPreset(${i})" title="${p.name||'커스텀'}"></div>
-      <span style="font-size:9px;color:var(--muted);max-width:50px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.name||''}</span>
-      <button onclick="delCustomPreset(${i})" style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--dim);padding:0;line-height:1;">✕</button>
-    </div>`).join('');
-}
-
-function applyCustomPreset(i){
-  const arr=getCustomPresets();if(!arr[i])return;
-  applyTheme(arr[i]);openStylePanel();
-}
-function delCustomPreset(i){
-  const arr=getCustomPresets();arr.splice(i,1);saveCustomPresets(arr);renderCustomPresets();
 }
 
 // ── CATMODAL 그룹 select 채우기 ──
@@ -2323,22 +2266,11 @@ function fillCatGroupSelect(currentGroupId){
   sel.innerHTML='<option value="">없음</option>'+groups.map(g=>`<option value="${g.id}" ${g.id===currentGroupId?'selected':''}>${esc(g.name)}</option>`).join('');
 }
 
-// 카테고리 모달 안에서 그룹 추가
-function addGroupFromModal(){
-  const name=prompt('새 그룹 이름','');if(!name||!name.trim())return;
-  const groups=getGroups();
-  const newG={id:'g'+Date.now(),name:name.trim()};
-  groups.push(newG);
-  saveGroups(groups);
-  fillCatGroupSelect(newG.id); // 방금 만든 그룹 선택 상태로
-  renderOverview();
-}
-
 // ── 사이드바 + 추가 버튼 표시 ──
 function updateSbAddBtn(){
-  const btn=document.getElementById('sb-inline-add');
-  if(!btn)return;
-  btn.style.display=(!IS_VIEW&&tab!=='dday')?'inline-block':'none';
+  const wrap=document.getElementById('sb-addbtn-wrap');
+  if(!wrap)return;
+  wrap.style.display=(!IS_VIEW&&tab!=='dday')?'block':'none';
 }
 const FRAMES=['none','round','square','shadow','border','polaroid'];
 function loadCardStyle(){
