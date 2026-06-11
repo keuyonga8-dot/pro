@@ -222,15 +222,15 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .gal-ftab:hover{border-color:var(--sky2);color:var(--cs);}
 .gal-ftab.on{background:linear-gradient(135deg,rgba(196,224,255,.3),rgba(248,204,228,.25));border-color:var(--sky2);color:var(--cs);}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;}
-.gal-tag-btn{position:absolute;bottom:4px;right:28px;width:20px;height:20px;border-radius:5px;background:rgba(255,255,255,.85);border:none;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;color:var(--cs);z-index:2;}
+.gal-tag-btn{position:absolute;bottom:4px;left:28px;width:20px;height:20px;border-radius:5px;background:rgba(248,204,228,.9);border:none;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;color:var(--cp);z-index:2;}
 .gimgwrap:hover .gal-tag-btn{opacity:1;}
 
 .gal-pair-label{position:absolute;bottom:4px;left:6px;background:rgba(192,88,136,.75);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;pointer-events:none;z-index:2;max-width:calc(100% - 60px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;backdrop-filter:blur(2px);}
 .gal-token-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:3;pointer-events:none;padding:6px;}
 .gal-token-text{font-size:10px;font-weight:700;color:#fff;text-align:center;line-height:1.4;word-break:break-all;text-shadow:0 1px 3px rgba(0,0,0,.4);max-height:100%;overflow:hidden;}
-.gal-tok-btn{position:absolute;top:28px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.9);border:none;font-size:9px;font-weight:700;cursor:pointer;color:var(--cp);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;z-index:4;}
+.gal-tok-btn{position:absolute;bottom:4px;right:4px;width:20px;height:20px;border-radius:5px;background:rgba(196,224,255,.9);border:none;font-size:9px;font-weight:700;cursor:pointer;color:var(--cs);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s;z-index:4;}
 .gimgwrap:hover .gal-tok-btn{opacity:1;}
-.gimgwrap.has-token .gal-tok-btn{opacity:.85;}
+/* has-token T버튼 항상보임 제거 */
 .gimgwrap{aspect-ratio:1;border-radius:8px;overflow:hidden;background:linear-gradient(135deg,var(--sky),var(--pink));position:relative;cursor:pointer;}
 .gimgwrap img{width:100%;height:100%;object-fit:cover;transition:transform .2s;}
 .gimgwrap:hover img{transform:scale(1.04);}
@@ -632,7 +632,7 @@ body.viewer.hide-style #mtab-style{display:none !important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v84</span>
+      <span class="vbadge">v85</span>
       <button class="hbtn vonly" onclick="openStylePanel()">🎨 스타일</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">공유</button>
@@ -1399,19 +1399,6 @@ function initGalleryDrag(catId){
       cat.gallery.splice(toIdx,0,item);
 
       // 메타데이터(galPos, galPairTag, galToken, galTokenColor) 인덱스도 함께 이동
-      const moveMetaObj=obj=>{
-        if(!obj)return obj;
-        // 객체를 배열로 변환 (없는 인덱스는 undefined)
-        const arr=cat.gallery.map((_,i)=>{
-          // 이동 전 인덱스 역산
-          const origIdx=getOrigIdx(i,galDragSrc,toIdx);
-          return obj[origIdx]!==undefined?obj[origIdx]:undefined;
-        });
-        const newObj={};
-        arr.forEach((v,i)=>{if(v!==undefined)newObj[i]=v;});
-        return newObj;
-      };
-
       // 이동 전→후 인덱스 역산 함수
       const getOrigIdx=(newIdx,from,to)=>{
         if(from<to){
@@ -1423,6 +1410,17 @@ function initGalleryDrag(catId){
           if(newIdx===to) return from;
           return newIdx-1;
         }
+      };
+
+      const moveMetaObj=obj=>{
+        if(!obj)return obj;
+        const arr=cat.gallery.map((_,i)=>{
+          const origIdx=getOrigIdx(i,galDragSrc,toIdx);
+          return obj[origIdx]!==undefined?obj[origIdx]:undefined;
+        });
+        const newObj={};
+        arr.forEach((v,i)=>{if(v!==undefined)newObj[i]=v;});
+        return newObj;
       };
 
       if(cat.galPos) cat.galPos=moveMetaObj(cat.galPos);
@@ -1732,8 +1730,8 @@ function renderDetail(id){
 
   const tabBar=`<div class="dtab-bar">
     <button class="dtab on" id="dtab-tags" onclick="switchDetailTab('tags','${cat.id}')">태그</button>
-    ${tab==='artist'?`<button class="dtab" id="dtab-pair" onclick="switchDetailTab('pair','${cat.id}')">💘 Pair</button>`:''}
-    <button class="dtab" id="dtab-gallery" onclick="switchDetailTab('gallery','${cat.id}')">갤러리</button>
+    
+    <button class="dtab" id="dtab-pair-gallery" onclick="switchDetailTab('pair-gallery','${cat.id}')">${tab==='artist'?'💘 Pair / 갤러리':'갤러리'}</button>
     ${showProfileTab?`<button class="dtab" id="dtab-profile" onclick="switchDetailTab('profile','${cat.id}')">프로필</button>`:''}
   </div>`;
 
@@ -1758,8 +1756,15 @@ function renderDetail(id){
       ${IS_VIEW?'':`<button class="addebtn" onclick="openAddEntry('${cat.id}')">+ 항목 추가</button>`}
       ${sumHtml}
     </div>
-    ${tab==='artist'?`<div class="dtab-pane" id="dtpane-pair">${pairHtml}</div>`:''}
-    <div class="dtab-pane" id="dtpane-gallery">${galHtml}</div>
+    ${tab==='artist'?`<div class="dtab-pane" id="dtpane-pair-gallery">
+      ${pairHtml}
+      <div class="detail-section-divider">
+        <div class="detail-section-divider-line"></div>
+        <div class="detail-section-divider-label">🖼 갤러리</div>
+        <div class="detail-section-divider-line"></div>
+      </div>
+      ${galHtml}
+    </div>`:`<div class="dtab-pane" id="dtpane-pair-gallery">${galHtml}</div>`}
     ${profilePaneHtml||''}`;
 
   setTimeout(()=>{initGalleryDrag(id);initEntryDrag(id);initPairDrag(id);},80);
