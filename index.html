@@ -361,7 +361,7 @@ body.frame-border .ovcard{outline:3px solid var(--white);box-shadow:0 0 0 5px rg
 .size-row label{font-size:11px;color:var(--muted);font-weight:600;min-width:40px;}
 .size-row input[type=range]{flex:1;}
 .size-row span{font-size:11px;color:var(--text);min-width:32px;text-align:right;}
-body.viewer .herobtns,body.viewer .addebtn,body.viewer .delbtn,body.viewer .echk-wrap,body.viewer .mbar,body.viewer .gadd,body.viewer .gimgdel,body.viewer .gimgpos-btn,body.viewer .gal-tok-btn,body.viewer .pairsec,body.viewer .add-group-btn,body.viewer .group-actions,body.viewer .entry-drag-handle,body.viewer .pair-drag,body.viewer .cat-drag,body.viewer [data-tab="style"],body.viewer .profile-edit-btn,body.viewer .hbtn:not(.vonly){display:none!important;}
+body.viewer .herobtns,body.viewer .addebtn,body.viewer .delbtn,body.viewer .echk-wrap,body.viewer .mbar,body.viewer .gadd,body.viewer .gimgdel,body.viewer .gimgpos-btn,body.viewer .gal-tok-btn,body.viewer .add-group-btn,body.viewer .group-actions,body.viewer .entry-drag-handle,body.viewer .pair-drag,body.viewer .cat-drag,body.viewer [data-tab="style"],body.viewer .profile-edit-btn,body.viewer .hbtn:not(.vonly){display:none!important;}
 body.viewer.showpair .pairsec{display:block!important;}
 body.viewer.hide-style [data-tab="style"]{display:none!important;}
 body.viewer.hide-style #mtab-style{display:none!important;}
@@ -512,7 +512,7 @@ body.viewer.hide-style #mtab-style{display:none!important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v87</span>
+      <span class="vbadge">v88</span>
       <button class="hbtn vonly" onclick="openStylePanel()">🎨 스타일</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">공유</button>
@@ -1040,7 +1040,7 @@ function renderDetail(id){
   const sumHtml=allTags.length?`<div class="sumbox"><div class="sumhead"><div class="sumtitle">✨ 전체 통합 태그 <span class="sumcnt">${allTags.length}개</span></div><button class="scpbtn" onclick="cpSummary('${cat.id}')">한번에 복사</button></div><div class="sumchips">${allTags.map(t=>`<span class="schap" onclick="cpTag('${esc(t)}')">${esc(t)}</span>`).join('')}</div></div>`:'';
   const pairTitle=cat.pairTitle||'💘 Pair';const parseTags=v=>(v||[]).filter(Boolean);
   const pairHtml=(tab==='artist'&&(!IS_VIEW||pair.some(p=>p.startDate||(p.tagsLook||[]).length||(p.tagsOutfit||[]).length||(p.tagsEtc||[]).length||(p.tags||[]).length)))?`<div class="pairsec"><div class="pairhead">${IS_VIEW?`<div class="pairtitle">${esc(pairTitle)}</div>`:`<button class="pairtitle" ondblclick="editPairTitle('${cat.id}',this)">${esc(pairTitle)}</button>`}${IS_VIEW?'':`<button class="scpbtn" onclick="openPairModal('${cat.id}')" style="font-size:10px;padding:4px 10px">+ 추가</button>`}</div>${!pair.length?`<div class="pairempty">Pair를 추가해보세요</div>`:pair.map((p,pi)=>{const dplus=p.startDate?calcDPlus(p.startDate):'';const tagsLook=parseTags(p.tagsLook);const tagsOutfit=parseTags(p.tagsOutfit);const tagsEtc=parseTags(p.tagsEtc||(p.tags&&p.tags.length?p.tags:[]));const allTags=[...tagsLook,...tagsOutfit,...tagsEtc];if(IS_VIEW&&!dplus&&!allTags.length)return'';const secHtml=(label,tags)=>tags.length?`<div class="pc2-section"><div class="pc2-sec-row"><span class="pc2-sec-label">${label}</span><div class="pc2-tags">${tags.map((t,i)=>`<span class="chip ${ks[i%6]}" onclick="cpTag('${esc(t)}')">${esc(t)}</span>`).join('')}</div><button class="pc2-copy" data-tags="${esc(JSON.stringify(tags))}" onclick="cpTagData(this)">복사</button></div></div>`:'';return `<div class="paircard2" data-pi="${pi}"><div class="pc2-head">${IS_VIEW?'':`<span class="pc2-drag">⠿</span>`}<div class="pc2-av">${p.avatar?`<img src="${p.avatar}" alt="">`:p.emoji?p.emoji:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>'}</div><div class="pc2-info"><div class="pc2-name">${esc(p.name)}${dplus?`<span class="pc2-dplus">${dplus}</span>`:''}</div></div><div class="pc2-acts">${IS_VIEW?'':`<button class="copybtn" onclick="openPairModal('${cat.id}',${pi})">✏️</button>`}${IS_VIEW?'':`<button class="delbtn" onclick="delPairCat('${cat.id}',${pi})">✕</button>`}</div></div>${tagsLook.length||tagsOutfit.length||tagsEtc.length?`<div class="pc2-body">${secHtml('외형',tagsLook)}${secHtml('의상',tagsOutfit)}${secHtml('기타',tagsEtc)}</div><div class="pc2-allacts">${allTags.length?`<button class="pc2-allcopy" data-tags="${esc(JSON.stringify(allTags))}" onclick="cpTagData(this)">전체 복사</button>`:''}</div>`:''}</div>`;}).join('')}</div>`:'';
-  const hasGallery=gallery.length>0;const showGal=hasGallery||!IS_VIEW;
+  const hasGallery=gallery.length>0;const showGal=hasGallery;
   const galPairs=[{id:'',name:'전체'},...pair.map(p=>({id:p.name,name:p.name}))];
   const filterTabs=hasGallery?`<div class="gal-filter">${galPairs.map(p=>`<button class="gal-ftab${p.id===''?' on':''}" onclick="filterGallery('${cat.id}','${p.id}',this)">${esc(p.name)}</button>`).join('')}</div>`:'';
   const galImgsHtml=gallery.map((src,gi)=>{
