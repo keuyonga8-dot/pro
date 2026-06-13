@@ -495,6 +495,7 @@ body.viewer.hide-style #mtab-style{display:none!important;}
     <div class="loginlogo">🏷️</div>
     <div class="logintitle">TagVault</div>
     <div class="loginsub">암호를 입력하세요</div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-top:-8px;">수정용 암호. 본인이 아는 암호로만 해주셔야 합니다</div>
     <input class="finput" id="pw-input" type="password" placeholder="암호" style="text-align:center;font-size:15px;" onkeydown="if(event.key==='Enter')signIn()">
     <div id="pw-error" style="font-size:11px;color:#c05888;min-height:16px;"></div>
     <button class="googlebtn" onclick="signIn()" style="justify-content:center;">입력</button>
@@ -829,17 +830,19 @@ function signOut(){
 }
 let fbGroups={artist:[],style:[]};
 function listenData(uid){
-  fbDB.ref('users/'+uid+'/data').on('value',snap=>{
-    const v=snap.val()||{};
+  let _dataSnap=null,_galSnap=null;
+  const _merge=()=>{
+    if(!_dataSnap)return;
+    const v=_dataSnap.val()||{};
     cache={artist:v.artist?Object.values(v.artist):[],style:v.style?Object.values(v.style):[]};
-    fbDB.ref('users/'+uid+'/gallery').once('value',gsnap=>{
-      const gv=gsnap.val()||{};
-      ['artist','style'].forEach(t=>{(cache[t]||[]).forEach(cat=>{cat.gallery=gv[cat.id]||[];});});
-      try{localStorage.setItem('tv_cache_'+uid,JSON.stringify(cache));}catch(e){}
-      renderSidebar();renderOverview();
-      if(selId)renderDetail(selId);
-    });
-  });
+    const gv=_galSnap?(_galSnap.val()||{}):{};
+    ['artist','style'].forEach(t=>{(cache[t]||[]).forEach(cat=>{cat.gallery=gv[cat.id]||[];});});
+    try{localStorage.setItem('tv_cache_'+uid,JSON.stringify(cache));}catch(e){}
+    renderSidebar();renderOverview();
+    if(selId)renderDetail(selId);
+  };
+  fbDB.ref('users/'+uid+'/data').on('value',snap=>{_dataSnap=snap;_merge();});
+  fbDB.ref('users/'+uid+'/gallery').on('value',gsnap=>{_galSnap=gsnap;_merge();});
   fbDB.ref('users/'+uid+'/imgpos').on('value',snap=>{
     const v=snap.val();if(!v)return;
     ['artist','style'].forEach(t=>{(cache[t]||[]).forEach(cat=>{if(v[cat.id]){if(v[cat.id].pos)cat.imgPos=v[cat.id].pos;if(v[cat.id].galPos)cat.galPos=v[cat.id].galPos;}});});
