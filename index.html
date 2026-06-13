@@ -512,7 +512,7 @@ body.viewer.hide-style #mtab-style{display:none!important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v86</span>
+      <span class="vbadge">v87</span>
       <button class="hbtn vonly" onclick="openStylePanel()">🎨 스타일</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">공유</button>
@@ -809,7 +809,7 @@ function onAuth(user){
     document.getElementById('app').classList.add('on');
     ['sharebtn','groupbtn','addbtn','signoutbtn','stylesharebtn','signout-div'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='flex';});
     loadStyleShare();updateSbAddBtn();
-    try{const lc=localStorage.getItem('tv_cache_'+user.uid);const lg=localStorage.getItem('tv_groups_'+user.uid);if(lc){cache=JSON.parse(lc);if(lg)fbGroups=JSON.parse(lg);renderSidebar();renderOverview();}}catch(e){}
+    try{const lc=localStorage.getItem('tv_cache_'+user.uid);const lg=localStorage.getItem('tv_groups_'+user.uid);if(lc){cache=JSON.parse(lc);if(lg)fbGroups=JSON.parse(lg);}}catch(e){}
     listenData(user.uid);
   }else{document.getElementById('loginscreen').style.display='flex';document.getElementById('app').classList.remove('on');}
 }
