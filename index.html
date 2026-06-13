@@ -511,7 +511,7 @@ body.viewer.hide-style #mtab-style{display:none!important;}
       <button class="htab" data-tab="dday" onclick="switchTab('dday')">D-day</button>
     </div>
     <div class="hright">
-      <span class="vbadge">v92</span>
+      <span class="vbadge">v93</span>
       <button class="hbtn vonly" onclick="openStylePanel()">🎨 스타일</button>
       <button class="hbtn" id="stylesharebtn" onclick="toggleStyleShare()" style="display:none"></button>
       <button class="hbtn" id="sharebtn" onclick="openShareSettings()" style="display:none">공유</button>
@@ -789,7 +789,7 @@ let imgPosCatId=null,imgPosX=50,imgPosY=50,imgPosSize=100,imgPosGalIdx=-1;
 function loadFirebase(){
   const SDKS=['https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js','https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js'];
   let done=0;
-  SDKS.forEach(src=>{const s=document.createElement('script');s.src=src;s.onload=()=>{if(++done===SDKS.length){firebase.initializeApp(FB);fbDB=firebase.database();if(IS_VIEW)onAuth();}};document.head.appendChild(s);});
+  SDKS.forEach(src=>{const s=document.createElement('script');s.src=src;s.onload=()=>{if(++done===SDKS.length){firebase.initializeApp(FB);fbDB=firebase.database();if(IS_VIEW){onAuth();}else{const saved=localStorage.getItem('tv_saved_uid');if(saved){currentUser={uid:saved};document.getElementById('loginscreen').style.display='none';document.getElementById('app').classList.add('on');['sharebtn','groupbtn','signoutbtn','stylesharebtn','signout-div'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='flex';});updateSbAddBtn();loadStyleShare();listenData(saved);}}}};document.head.appendChild(s);});
 }
 
 function onAuth(){
@@ -813,6 +813,7 @@ function signIn(){
   crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw)).then(buf=>{
     const uid='pw_'+Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,32);
     currentUser={uid};
+    try{localStorage.setItem('tv_saved_uid',uid);}catch(e){}
     document.getElementById('loginscreen').style.display='none';
     document.getElementById('app').classList.add('on');
     ['sharebtn','groupbtn','signoutbtn','stylesharebtn','signout-div'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='flex';});
@@ -821,6 +822,7 @@ function signIn(){
 }
 function signOut(){
   currentUser=null;
+  try{localStorage.removeItem('tv_saved_uid');}catch(e){}
   document.getElementById('loginscreen').style.display='flex';
   document.getElementById('app').classList.remove('on');
   document.getElementById('pw-input').value='';
