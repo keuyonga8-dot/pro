@@ -983,7 +983,7 @@ const VIEW_SLUG=params.get('v')||'';
 const VIEW_UID=params.get('uid')||'';
 const PAIR_KEY=params.get('pair')||'';
 
-let fbDB=null,fbAuth=null,currentUser=null;
+let fbDB=null,currentUser=null;
 let cache={artist:[],style:[]};
 let tab='artist',selId=null,editCatId=null,entryTarget=null;
 let pendingAv=null,pendingPairAv=null;
@@ -1001,13 +1001,12 @@ let imgPosCatId=null,imgPosX=50,imgPosY=50,imgPosSize=100,imgPosGalIdx=-1;
 function loadFirebase(){
   const SDKS=[
     'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
-    'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js',
     'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js'
   ];
   let done=0;
   SDKS.forEach(src=>{
     const s=document.createElement('script');s.src=src;
-    s.onload=()=>{if(++done===SDKS.length){firebase.initializeApp(FB);fbDB=firebase.database();fbAuth=firebase.auth();fbAuth.onAuthStateChanged(onAuth);}};
+    s.onload=()=>{if(++done===SDKS.length){firebase.initializeApp(FB);fbDB=firebase.database();if(IS_VIEW)onAuth();}};
     document.head.appendChild(s);
   });
 }
@@ -1029,9 +1028,25 @@ function onAuth(){
     }
   }
 }
-window.addEventListener('DOMContentLoaded',()=>{setTimeout(()=>{if(IS_VIEW)onAuth();},300);});
-function signIn(){const p=new firebase.auth.GoogleAuthProvider();fbAuth.signInWithPopup(p).catch(e=>alert('로그인 실패: '+e.message));}
-function signOut(){fbAuth.signOut();}
+function signIn(){
+  const pw=document.getElementById('pw-input').value.trim();
+  if(!pw)return;
+  const encoder=new TextEncoder();
+  crypto.subtle.digest('SHA-256',encoder.encode(pw)).then(buf=>{
+    const uid='pw_'+Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('').slice(0,32);
+    currentUser={uid};
+    document.getElementById('loginscreen').style.display='none';
+    document.getElementById('app').classList.add('on');
+    ['sharebtn','groupbtn','signoutbtn','stylesharebtn','signout-div'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='flex';});
+    updateSbAddBtn();loadStyleShare();listenData(uid);
+  });
+}
+function signOut(){
+  currentUser=null;
+  document.getElementById('loginscreen').style.display='flex';
+  document.getElementById('app').classList.remove('on');
+  document.getElementById('pw-input').value='';
+}
 
 let fbGroups={artist:[],style:[]};
 
