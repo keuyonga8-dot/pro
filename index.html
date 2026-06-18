@@ -797,11 +797,7 @@ const PCOLS=['#5a96c4','#c05888','#52a880','#8458b8','#c07838','#42a0ae'];
 let pcolIdx=0;
 let imgPosCatId=null,imgPosX=50,imgPosY=50,imgPosSize=100,imgPosGalIdx=-1;
 
-function loadFirebase(){
-  const SDKS=['https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js','https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js'];
-  let done=0;
-  SDKS.forEach(src=>{const s=document.createElement('script');s.src=src;s.onload=()=>{if(++done===SDKS.length){firebase.initializeApp(FB);fbDB=firebase.database();if(IS_VIEW){onAuth();}else{const saved=localStorage.getItem('tv_saved_uid');if(saved){currentUser={uid:saved};document.getElementById('loginscreen').style.display='none';document.getElementById('app').classList.add('on');['sharebtn','groupbtn','signoutbtn','stylesharebtn','signout-div'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='flex';});updateSbAddBtn();loadStyleShare();listenData(saved);}}}};document.head.appendChild(s);});
-}
+function loadFirebase(){function _init(){firebase.initializeApp(FB);fbDB=firebase.database();if(IS_VIEW){onAuth();}else{const saved=localStorage.getItem('tv_saved_uid');if(saved){currentUser={uid:saved};document.getElementById('loginscreen').style.display='none';document.getElementById('app').classList.add('on');['sharebtn','groupbtn','signoutbtn','stylesharebtn','signout-div'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='flex';});updateSbAddBtn();loadStyleShare();listenData(saved);}}}function _load(urls,i){if(i>=urls.length){_init();return;}const s=document.createElement('script');s.src=urls[i];s.onload=()=>_load(urls,i+1);s.onerror=()=>{console.error('Firebase SDK load failed:',urls[i]);};document.head.appendChild(s);}_load(['https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js','https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js'],0);}
 
 function onAuth(){
   if(!IS_VIEW)return;
