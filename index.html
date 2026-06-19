@@ -883,7 +883,7 @@ function listenData(uid){
     const v=snap.val()||{};const toArr=x=>!x?[]:Array.isArray(x)?x:Object.values(x);
     fbGroups={artist:toArr(v.artist),style:toArr(v.style)};
     try{localStorage.setItem('tv_groups_'+uid,JSON.stringify(fbGroups));}catch(e){}
-    renderOverview();
+    renderOverview();renderSidebar();
   });
   fbDB.ref('users/'+uid+'/settings').on('value',snap=>{
     const s=snap.val();if(!s)return;
