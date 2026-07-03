@@ -610,8 +610,8 @@ body.viewer.hide-style #mtab-style{display:none!important;}
     <div class="mhead"><div class="mtitle" id="catmodaltitle">카테고리 추가</div><button class="mclose" onclick="closeCatModal()">×</button></div>
     <div class="mbody">
       <div class="field"><label>프로필 이미지</label>
-        <div class="pavarea"><div class="pavprev" id="pavprev" onclick="document.getElementById('pavinput').click()">🎨</div>
-        <div class="pavhint">클릭 또는 <strong onclick="document.getElementById('pavinput').click()">파일 선택</strong></div></div>
+        <div class="pavarea"><div class="pavprev" id="pavprev" tabindex="0" onclick="document.getElementById('pavinput').click()" onpaste="onImgPaste(event,'profile')">🎨</div>
+        <div class="pavhint">클릭 · <strong onclick="document.getElementById('pavinput').click()">파일 선택</strong> · 붙여넣기</div></div>
         <input type="file" id="pavinput" accept="image/*" style="display:none" onchange="onProfileFile(event)">
       </div>
       <div class="field"><label>이름</label><input class="finput" id="catname" placeholder="예: 호무라"></div>
@@ -631,8 +631,8 @@ body.viewer.hide-style #mtab-style{display:none!important;}
       <div class="field" style="border-top:1px solid var(--border);padding-top:10px;margin-top:2px;">
         <label style="display:flex;align-items:center;gap:5px;">상세 페이지 이미지 <span style="font-size:10px;font-weight:400;color:var(--muted)">(D-day 동그라미와 별개 · 상단 헤더에만 표시)</span></label>
         <div class="pavarea" style="margin-top:6px;">
-          <div class="pavprev" id="heroavprev" onclick="document.getElementById('heroavinput').click()" style="font-size:18px;">🖼️</div>
-          <div class="pavhint">클릭 또는 <strong onclick="document.getElementById('heroavinput').click()">파일 선택</strong><br><span style="font-size:10px;color:var(--dim)">미설정 시 프로필 이미지 사용</span></div>
+          <div class="pavprev" id="heroavprev" onclick="document.getElementById('heroavinput').click()" onpaste="onImgPaste(event,'heroav')" tabindex="0" style="font-size:18px;">🖼️</div>
+          <div class="pavhint">클릭 · <strong onclick="document.getElementById('heroavinput').click()">파일 선택</strong> · 붙여넣기<br><span style="font-size:10px;color:var(--dim)">미설정 시 프로필 이미지 사용</span></div>
         </div>
         <input type="file" id="heroavinput" accept="image/*" style="display:none" onchange="onHeroAvFile(event)">
         <div id="heroav-del-wrap" style="display:none;margin-top:4px;"><button onclick="clearHeroAv()" style="font-size:10px;color:var(--cp);background:none;border:none;cursor:pointer;padding:0;">✕ 이미지 제거</button></div>
@@ -658,8 +658,8 @@ body.viewer.hide-style #mtab-style{display:none!important;}
     <div class="mhead"><div class="mtitle" id="pairmodaltitle">💘 Pair 추가</div><button class="mclose" onclick="closePairModal()">×</button></div>
     <div class="mbody">
       <div class="field"><label>프로필 이미지</label>
-        <div class="pavarea"><div class="pavprev" id="pairpavprev" onclick="document.getElementById('pairpavinput').click()">💘</div>
-        <div class="pavhint">클릭 또는 <strong onclick="document.getElementById('pairpavinput').click()">파일 선택</strong></div></div>
+        <div class="pavarea"><div class="pavprev" id="pairpavprev" onclick="document.getElementById('pairpavinput').click()" onpaste="onImgPaste(event,'pair')" tabindex="0">💘</div>
+        <div class="pavhint">클릭 · <strong onclick="document.getElementById('pairpavinput').click()">파일 선택</strong> · 붙여넣기</div></div>
         <input type="file" id="pairpavinput" accept="image/*" style="display:none" onchange="onPairProfileFile(event)">
       </div>
       <div class="field"><label>이름</label><input class="finput" id="pairname" placeholder="예: 윈터"></div>
@@ -905,6 +905,29 @@ function saveDB(){
 }
 function saveSettings(key,val){if(IS_VIEW||!currentUser)return;fbDB.ref('users/'+currentUser.uid+'/settings/'+key).set(val).catch(e=>console.error(key+' save:',e));}
 function resizeImg(dataUrl,maxSize,q,cb){const img=new Image();img.onload=()=>{let w=img.width,h=img.height;if(w>h){if(w>maxSize){h=h*maxSize/w;w=maxSize;}}else{if(h>maxSize){w=w*maxSize/h;h=maxSize;}}const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);cb(c.toDataURL('image/jpeg',q));};img.src=dataUrl;}
+function onImgPaste(e,type){
+  const items=e.clipboardData&&e.clipboardData.items;
+  if(!items)return;
+  for(let i=0;i<items.length;i++){
+    if(items[i].type.indexOf('image')===0){
+      e.preventDefault();
+      const f=items[i].getAsFile();
+      if(!f)return;
+      const r=new FileReader();
+      r.onload=ev=>{
+        if(type==='profile'){
+          resizeImg(ev.target.result,1200,.95,b64=>{pendingAv=b64;document.getElementById('pavprev').innerHTML=`<img src="${b64}" alt="">`;});
+        }else if(type==='heroav'){
+          resizeImg(ev.target.result,1200,.9,b64=>{pendingHeroAv=b64;document.getElementById('heroavprev').innerHTML=`<img src="${b64}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;document.getElementById('heroav-del-wrap').style.display='block';});
+        }else if(type==='pair'){
+          resizeImg(ev.target.result,1200,.95,b64=>{pendingPairAv=b64;document.getElementById('pairpavprev').innerHTML=`<img src="${b64}" alt="">`;});
+        }
+      };
+      r.readAsDataURL(f);
+      return;
+    }
+  }
+}
 function onProfileFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>resizeImg(ev.target.result,1200,.95,b64=>{pendingAv=b64;document.getElementById('pavprev').innerHTML=`<img src="${b64}" alt="">`;});r.readAsDataURL(f);}
 function onPairProfileFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>resizeImg(ev.target.result,1200,.95,b64=>{pendingPairAv=b64;document.getElementById('pairpavprev').innerHTML=`<img src="${b64}" alt="">`;});r.readAsDataURL(f);}
 function onGalleryFile(e,catId){
