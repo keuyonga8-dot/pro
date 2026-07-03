@@ -819,17 +819,7 @@ function onAuth(){
   if(VIEW_SLUG){
     fbDB.ref('slugs/'+VIEW_SLUG).once('value',snap=>{
       const uid=snap.val();
-      if(uid){
-        if(PAIR_KEY){
-          listenData(uid);
-        } else {
-          fbDB.ref('users/'+uid+'/pairkey').once('value',pkSnap=>{
-            const pk=pkSnap.val();
-            if(pk)document.body.classList.add('showpair');
-            listenData(uid);
-          });
-        }
-      }
+      if(uid)listenData(uid);
       else document.getElementById('app').innerHTML='<div style="padding:40px;text-align:center;color:#999">링크를 찾을 수 없어요.</div>';
     });
   }else{listenData(VIEW_UID);}
@@ -1020,6 +1010,30 @@ function initGalleryDrag(catId){
     });
   });
 }
+function initGalleryPaste(catId){
+  const detail=document.getElementById('detail');if(!detail)return;
+  detail._pasteHandler&&detail.removeEventListener('paste',detail._pasteHandler);
+  detail._pasteHandler=(e)=>{
+    if(IS_VIEW)return;
+    const items=e.clipboardData?.items;if(!items)return;
+    for(const item of items){
+      if(item.type.startsWith('image/')){
+        const blob=item.getAsFile();if(!blob)continue;
+        const r=new FileReader();
+        r.onload=ev=>resizeImg(ev.target.result,1800,.92,b64=>{
+          const cat=(cache[tab]||[]).find(c=>c.id===catId);if(!cat)return;
+          if(!cat.gallery)cat.gallery=[];
+          cat.gallery.push(b64);
+          saveDB();renderDetail(catId);
+          toast('이미지 붙여넣기 완료');
+        });
+        r.readAsDataURL(blob);
+        e.preventDefault();break;
+      }
+    }
+  };
+  detail.addEventListener('paste',detail._pasteHandler);
+}
 let entDragSrc=null,entDragCat=null;
 function initEntryDrag(catId){
   document.querySelectorAll('.entry[data-ei]').forEach(el=>{
@@ -1062,20 +1076,13 @@ function renderSidebar(){
   document.getElementById('sbfoot').textContent=`${filtered.length} / ${cats.length}개`;
   const groups=getGroups();const gids=groups.map(g=>g.id);
   let html='';
+  const catBtn=(cat)=>`<button class="catbtn ${cat.id===selId?'on':''}" data-ci="${cats.indexOf(cat)}" onclick="selectCat('${cat.id}')">${IS_VIEW?'':'<span class="cat-drag">⠿</span>'}<div class="catav">${cat.avatar?`<img src="${cat.avatar}" alt="">`:(cat.emoji||'🏷️')}</div><div class="catinfo"><div class="catname">${esc(cat.name)}</div>${cat.tag?`<div class="catsub">${esc(cat.tag)}</div>`:''}</div></button>`;
   if(q){
-    // 검색 중엔 그룹 구분 없이 flat
-    html=filtered.map((cat,i)=>`<button class="catbtn ${cat.id===selId?'on':''}" data-ci="${cats.indexOf(cat)}" onclick="selectCat('${cat.id}')">${IS_VIEW?'':'<span class="cat-drag">⠿</span>'}<div class="catav">${cat.avatar?`<img src="${cat.avatar}" alt="">`:(cat.emoji||'🏷️')}</div><div class="catinfo"><div class="catname">${esc(cat.name)}</div>${cat.tag?`<div class="catsub">${esc(cat.tag)}</div>`:''}</div></button>`).join('');
-  } else {
-    groups.forEach(g=>{
-      const grouped=cats.filter(c=>c.groupId===g.id);if(!grouped.length)return;
-      html+=`<div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.6px;padding:10px 8px 4px;text-transform:uppercase;">${esc(g.name)}</div>`;
-      html+=grouped.map(cat=>`<button class="catbtn ${cat.id===selId?'on':''}" data-ci="${cats.indexOf(cat)}" onclick="selectCat('${cat.id}')">${IS_VIEW?'':'<span class="cat-drag">⠿</span>'}<div class="catav">${cat.avatar?`<img src="${cat.avatar}" alt="">`:(cat.emoji||'🏷️')}</div><div class="catinfo"><div class="catname">${esc(cat.name)}</div>${cat.tag?`<div class="catsub">${esc(cat.tag)}</div>`:''}</div></button>`).join('');
-    });
+    html=filtered.map(cat=>catBtn(cat)).join('');
+  }else{
+    groups.forEach(g=>{const grouped=cats.filter(c=>c.groupId===g.id);if(!grouped.length)return;html+=`<div style="font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.6px;padding:10px 8px 4px;text-transform:uppercase;">${esc(g.name)}</div>`;html+=grouped.map(cat=>catBtn(cat)).join('');});
     const ungrouped=cats.filter(c=>!c.groupId||!gids.includes(c.groupId));
-    if(ungrouped.length){
-      if(groups.length)html+=`<div style="height:1px;background:var(--border);margin:6px 8px;"></div>`;
-      html+=ungrouped.map(cat=>`<button class="catbtn ${cat.id===selId?'on':''}" data-ci="${cats.indexOf(cat)}" onclick="selectCat('${cat.id}')">${IS_VIEW?'':'<span class="cat-drag">⠿</span>'}<div class="catav">${cat.avatar?`<img src="${cat.avatar}" alt="">`:(cat.emoji||'🏷️')}</div><div class="catinfo"><div class="catname">${esc(cat.name)}</div>${cat.tag?`<div class="catsub">${esc(cat.tag)}</div>`:''}</div></button>`).join('');
-    }
+    if(ungrouped.length){if(groups.length)html+=`<div style="height:1px;background:var(--border);margin:6px 8px;"></div>`;html+=ungrouped.map(cat=>catBtn(cat)).join('');}
   }
   document.getElementById('catlist').innerHTML=html;
   if(!IS_VIEW)setTimeout(initCatDrag,50);
@@ -1131,7 +1138,7 @@ function renderDetail(id){
     const pairTag=(cat.galPairTag&&cat.galPairTag[gi])||'';const galToken=(cat.galToken&&cat.galToken[gi])||'';const galTokenColor=(cat.galTokenColor&&cat.galTokenColor[gi])||'rgba(0,0,0,0.55)';const hasToken=!!galToken;
     return `<div class="gimgwrap${pairTag?' has-pair-tag':''}${hasToken?' has-token':''}" data-gi="${gi}" data-pairtag="${pairTag}" onclick="if(!this._wasDragging)openLbox('${src.replace(/'/g,"\\'")}')"><img src="${src}" alt="" style="${gst}">${hasToken?`<div class="gal-token-overlay" style="background:${galTokenColor};"><span class="gal-token-text">${esc(galToken)}</span></div>`:''  }${IS_VIEW?'':`<button class="gimgdel" onclick="event.stopPropagation();delGalImg('${cat.id}',${gi})">✕</button><button class="gimgpos-btn" onclick="event.stopPropagation();openGalImgPos('${cat.id}',${gi})" title="위치/크기">⤢</button><button class="gal-tag-btn" onclick="event.stopPropagation();setGalPairTag('${cat.id}',${gi})" title="페어 지정">🏷</button><button class="gal-tok-btn" onclick="event.stopPropagation();editGalToken('${cat.id}',${gi})" title="토큰 ON/OFF">T</button><div class="gimg-drag-handle" title="드래그로 순서 변경">⠿</div>`}${pairTag?`<div class="gal-pair-label">${esc(pairTag)}</div>`:''}</div>`;
   }).join('');
-  const galHtml=showGal?`<div class="cgal-section">${hasGallery?`<div class="cgal-label">갤러리</div>${filterTabs}`:''}<div class="gallery" id="gallery-${cat.id}">${galImgsHtml}${IS_VIEW?'':`<button class="gadd" onclick="document.getElementById('galinput_${cat.id}').click()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15l5-5 4 4 3-3 4 4"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>추가</button><input type="file" id="galinput_${cat.id}" style="display:none" accept="image/*" multiple onchange="onGalleryFile(event,'${cat.id}')">`}</div></div>`:'';
+  const galHtml=showGal?`<div class="cgal-section">${hasGallery?`<div class="cgal-label">갤러리</div>${filterTabs}`:''}<div class="gallery" id="gallery-${cat.id}">${galImgsHtml}${IS_VIEW?'':`<button class="gadd" onclick="document.getElementById('galinput_${cat.id}').click()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15l5-5 4 4 3-3 4 4"/><circle cx="8.5" cy="8.5" r="1.5"/></svg>추가<span style="font-size:9px;display:block;opacity:.6">Ctrl+V 붙여넣기</span></button><input type="file" id="galinput_${cat.id}" style="display:none" accept="image/*" multiple onchange="onGalleryFile(event,'${cat.id}')">`}</div></div>`:'';
   const showProfileTab=hasProfile||!IS_VIEW;
   const profilePaneHtml=showProfileTab?`<div class="dtab-pane" id="dtpane-profile">${!IS_VIEW?`<div>${hasProfile?`<button class="profile-del-btn" onclick="deleteProfile('${cat.id}')">삭제</button>`:''}<button class="profile-edit-btn" onclick="openProfileEditor('${cat.id}')">${hasProfile?'✏️ 편집':'+ 프로필 작성'}</button></div>`:''  }${hasProfile?renderProfileCardHtml(cat.profile):`<div class="profile-empty">프로필 시트를 작성해보세요</div>`}</div>`:'';
 
@@ -1160,7 +1167,7 @@ function renderDetail(id){
       tb.classList.add('on');pn.classList.add('on');
     }else{activeDetailTab='tags';}
   }
-  setTimeout(()=>{initGalleryDrag(id);initEntryDrag(id);initPairDrag(id);},80);
+  setTimeout(()=>{initGalleryDrag(id);initEntryDrag(id);initPairDrag(id);initGalleryPaste(id);},80);
 }
 // FIX 3: switchDetailTab에서 activeDetailTab 저장
 function switchDetailTab(t,catId){
@@ -1231,10 +1238,10 @@ function toggleStyleShare(){const cur=localStorage.getItem('tv_style_shared')!==
 function updateStyleShareBtn(shared){const btn=document.getElementById('stylesharebtn');if(!btn)return;btn.textContent=shared?'베이스 ●':'베이스 ○';btn.style.color=shared?'var(--cs)':'var(--dim)';}
 let _shareUid='';
 function openShareSettings(){_shareUid=currentUser.uid;fbDB.ref('users/'+_shareUid+'/slug').once('value',snap=>{const slug=snap.val()||'';document.getElementById('slug-input').value=slug;document.getElementById('slug-status').textContent=slug?`현재: ${location.origin+location.pathname}?v=${slug}`:'슬러그를 설정하면 짧은 링크가 생성돼요';_buildShareLinks(slug);});document.getElementById('sharepop').classList.add('on');}
-function _buildShareLinks(slug){const uid=_shareUid;const pairKey=localStorage.getItem('tv_pairkey_'+uid)||'secret';const base=location.origin+location.pathname;if(slug){document.getElementById('sharelink1').value=`${base}?v=${slug}`;document.getElementById('sharelink2').value=`${base}?v=${slug}&pair=${pairKey}`;}else{document.getElementById('sharelink1').value=`${base}?view=1&uid=${uid}`;document.getElementById('sharelink2').value=`${base}?view=1&uid=${uid}&pair=${pairKey}`;}['1','2'].forEach(n=>{document.getElementById('sharecpbtn'+n).textContent='복사';document.getElementById('sharecpbtn'+n).classList.remove('done');});}
+function _buildShareLinks(slug){const uid=_shareUid;const storedHash=localStorage.getItem('tv_pw_'+uid)||'NO_PW';const pwParam=storedHash!=='NO_PW'?`&pw=${storedHash}`:'';const pairKey=localStorage.getItem('tv_pairkey_'+uid)||'secret';const base=location.origin+location.pathname;if(slug){document.getElementById('sharelink1').value=`${base}?v=${slug}${pwParam}`;document.getElementById('sharelink2').value=`${base}?v=${slug}${pwParam}&pair=${pairKey}`;}else{document.getElementById('sharelink1').value=`${base}?view=1&uid=${uid}${pwParam}`;document.getElementById('sharelink2').value=`${base}?view=1&uid=${uid}${pwParam}&pair=${pairKey}`;}['1','2'].forEach(n=>{document.getElementById('sharecpbtn'+n).textContent='복사';document.getElementById('sharecpbtn'+n).classList.remove('done');});}
 let _slugCheckTimer=null;
 function onSlugInput(){const val=document.getElementById('slug-input').value.trim();const status=document.getElementById('slug-status');if(!val){status.textContent='';return;}if(!/^[a-zA-Z0-9-]{2,30}$/.test(val)){status.style.color='var(--cp)';status.textContent='영문/숫자/-만 사용 가능, 2~30자';return;}status.style.color='var(--muted)';status.textContent='확인 중...';clearTimeout(_slugCheckTimer);_slugCheckTimer=setTimeout(()=>{fbDB.ref('slugs/'+val).once('value',snap=>{const existing=snap.val();if(!existing||existing===_shareUid){status.style.color='var(--cm)';status.textContent=`✓ 사용 가능: ${location.origin+location.pathname}?v=${val}`;}else{status.style.color='var(--cp)';status.textContent='이미 사용 중인 슬러그예요';}});},500);}
-async function saveSlug(){const val=document.getElementById('slug-input').value.trim();const status=document.getElementById('slug-status');if(!val){const oldSnap=await fbDB.ref('users/'+_shareUid+'/slug').once('value');const old=oldSnap.val();if(old)await fbDB.ref('slugs/'+old).remove();await fbDB.ref('users/'+_shareUid+'/slug').remove();status.style.color='var(--muted)';status.textContent='슬러그가 제거됐어요';_buildShareLinks('');return;}if(!/^[a-zA-Z0-9-]{2,30}$/.test(val)){return;}const snap=await fbDB.ref('slugs/'+val).once('value');const existing=snap.val();if(existing&&existing!==_shareUid){status.style.color='var(--cp)';status.textContent='이미 사용 중인 슬러그예요';return;}const oldSnap=await fbDB.ref('users/'+_shareUid+'/slug').once('value');const old=oldSnap.val();if(old&&old!==val)await fbDB.ref('slugs/'+old).remove();const pairKey=localStorage.getItem('tv_pairkey_'+_shareUid)||'secret';await fbDB.ref('slugs/'+val).set(_shareUid);await fbDB.ref('users/'+_shareUid+'/slug').set(val);await fbDB.ref('users/'+_shareUid+'/pairkey').set(pairKey);status.style.color='var(--cm)';status.textContent=`저장됨: ${location.origin+location.pathname}?v=${val}`;document.getElementById('slug-savebtn').textContent='저장됨';setTimeout(()=>document.getElementById('slug-savebtn').textContent='저장',2000);_buildShareLinks(val);}
+async function saveSlug(){const val=document.getElementById('slug-input').value.trim();const status=document.getElementById('slug-status');if(!val){const oldSnap=await fbDB.ref('users/'+_shareUid+'/slug').once('value');const old=oldSnap.val();if(old)await fbDB.ref('slugs/'+old).remove();await fbDB.ref('users/'+_shareUid+'/slug').remove();status.style.color='var(--muted)';status.textContent='슬러그가 제거됐어요';_buildShareLinks('');return;}if(!/^[a-zA-Z0-9-]{2,30}$/.test(val)){return;}const snap=await fbDB.ref('slugs/'+val).once('value');const existing=snap.val();if(existing&&existing!==_shareUid){status.style.color='var(--cp)';status.textContent='이미 사용 중인 슬러그예요';return;}const oldSnap=await fbDB.ref('users/'+_shareUid+'/slug').once('value');const old=oldSnap.val();if(old&&old!==val)await fbDB.ref('slugs/'+old).remove();await fbDB.ref('slugs/'+val).set(_shareUid);await fbDB.ref('users/'+_shareUid+'/slug').set(val);status.style.color='var(--cm)';status.textContent=`✓ 저장됨! ${location.origin+location.pathname}?v=${val}`;document.getElementById('slug-savebtn').textContent='✓ 저장됨';setTimeout(()=>document.getElementById('slug-savebtn').textContent='저장',2000);_buildShareLinks(val);}
 function closeSharePop(){document.getElementById('sharepop').classList.remove('on');}
 function cpShareLink(n){const val=document.getElementById('sharelink'+n).value;const btn=document.getElementById('sharecpbtn'+n);cpText(val,'');btn.textContent='✓ 복사됨';btn.classList.add('done');setTimeout(()=>{btn.textContent='복사';btn.classList.remove('done');},2000);}
 function openAddCat(){if(IS_VIEW)return;editCatId=null;pendingAv=null;pendingHeroAv=null;document.getElementById('catmodaltitle').textContent='카테고리 추가';['catname','cattag','catmemo'].forEach(id=>document.getElementById(id).value='');document.getElementById('catemoji').value=tab==='artist'?'🎨':'✨';document.getElementById('pavprev').innerHTML='🎨';document.getElementById('pavinput').value='';document.getElementById('heroavprev').innerHTML='🖼️';document.getElementById('heroavinput').value='';document.getElementById('heroav-del-wrap').style.display='none';fillCatGroupSelect('');renderEmojiPicker();document.getElementById('catmodal').classList.add('on');}
